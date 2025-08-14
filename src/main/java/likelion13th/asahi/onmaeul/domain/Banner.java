@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name="Banner")
 @Getter
+@Builder
+@AllArgsConstructor(access=AccessLevel.PRIVATE)
 @NoArgsConstructor(access= AccessLevel.PROTECTED)
 //@setter가 없고 create method로만 Banner 생성 가능
 public class Banner {
@@ -32,11 +34,10 @@ public class Banner {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @Column(name = "created_at", updatable = false, insertable=false)
-    private LocalDateTime createdAt;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private java.time.OffsetDateTime createdAt;
 
     //@setter 대신 외부에서 생성시에는 create method 사용
-    @Builder
     public static Banner create(Class clazz, String imageUrl,
                                 LocalDateTime startAt, LocalDateTime endAt,
                                 boolean isActive){
@@ -47,6 +48,11 @@ public class Banner {
                 .endAt(endAt)
                 .isActive(isActive)
                 .build();
+    }
+
+    @PrePersist
+    void onCreate() {
+        this.createdAt = java.time.OffsetDateTime.now();
     }
 }
 

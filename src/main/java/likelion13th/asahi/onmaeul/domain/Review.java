@@ -28,17 +28,17 @@ public class Review {
 
     //전체 자리수 2개, 소숫점 자리 1개(0.0~5.0)
     @Column(nullable=false,precision=2,scale=1)
-    private BigDecimal rating;
+    private Double rating;
 
     @Column(columnDefinition="TEXT")
     private String content;
 
-    @Column(name = "created_at", updatable = false, insertable=false)
-    private LocalDateTime createdAt;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private java.time.OffsetDateTime createdAt;
 
     /*외부 new 금지 -> create method로만 Review 만들기 가능
     생성 시 규칙 준수 여부 체크 가능*/
-    public static Review create(User writer, Match match, BigDecimal rating, String content) {
+    public static Review create(User writer, Match match, Double rating, String content) {
         Review review = new Review();
         review.writer = writer;
         review.match = match;
@@ -48,13 +48,15 @@ public class Review {
     }
 
     //rating 검증 method
-    private void setRating(BigDecimal rating) {
-        if (rating == null)
-            throw new IllegalArgumentException("rating is required");
-        if (rating.compareTo(new BigDecimal("0.0")) < 0 ||
-                rating.compareTo(new BigDecimal("5.0")) > 0) {
+    private void setRating(double rating) {
+        if (rating < 0.0 || rating > 5.0) {
             throw new IllegalArgumentException("rating must be between 0.0 and 5.0");
         }
-        this.rating = rating.setScale(1, java.math.RoundingMode.HALF_UP);
+        this.rating = Math.round(rating * 10.0) / 10.0;
+    }
+
+    @PrePersist
+    void onCreate() {
+        this.createdAt = java.time.OffsetDateTime.now();
     }
 }

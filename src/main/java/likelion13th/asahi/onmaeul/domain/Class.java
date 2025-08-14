@@ -7,7 +7,9 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name="Class")
+@Builder
 @Getter//@setter 설정 안함으로 외부 생성 막기
+@AllArgsConstructor(access=AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 /*외부 new 금지 -> create method로만 Review 만들기 가능
   생성 시 규칙 준수 여부 체크 가능*/
@@ -32,20 +34,26 @@ public class Class {
     @Column(nullable = false, length = 100)
     private String location;
 
+    @Column(nullable=false,columnDefinition = "TEXT")
+    private String timetable;
+
+    @Column(name = "image_url", nullable = false, length = 255)
+    private String imageUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status;
+    private ClassStatus status;
 
-    @Column(name = "created_at", updatable = false, insertable=false)
-    private LocalDateTime createdAt;
+    @Column(name = "created_at", updatable = false,nullable = false)
+    private java.time.OffsetDateTime createdAt;
 
-    @Builder
+
     public static Class create(Long hostId,
                                String title,
                                String description,
                                LocalDateTime schedule,
                                String location,
-                               Status status) {
+                               ClassStatus status) {
         return Class.builder()
                 .hostId(hostId)
                 .title(title)
@@ -59,11 +67,7 @@ public class Class {
     //status 기본값 주기
     @PrePersist
     protected void onCreate() {
-        if (this.status == null) this.status = Status.OPEN;
-    }
-
-    public enum Status {
-        OPEN,
-        CLOSED
+        this.createdAt = java.time.OffsetDateTime.now();
+        if (this.status == null) this.status = ClassStatus.OPEN;
     }
 }

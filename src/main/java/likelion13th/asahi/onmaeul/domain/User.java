@@ -29,7 +29,7 @@ public class User {
     private String profileUrl;
 
     /* 평점(0.0~5.0, 소수 1자리 권장) */
-    @Column(name = "rating")
+    @Column(name = "rating",precision=2,scale=1)
     private Double rating;
 
     /* 매칭 카드에 노출되는 한 줄 소개 */
