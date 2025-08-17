@@ -9,8 +9,7 @@ import likelion13th.asahi.onmaeul.domain.User;
 import likelion13th.asahi.onmaeul.service.HomeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
@@ -22,12 +21,9 @@ public class HomeController {
 
 
     @GetMapping
-    public ResponseEntity<ApiResponse<? extends HomePayload>> getHome(Authentication auth){
-        //guest 여부 체크
-        boolean guest = (auth == null) || (auth instanceof AnonymousAuthenticationToken);
-
+    public ResponseEntity<ApiResponse<? extends HomePayload>> getHome(@AuthenticationPrincipal User user){
         //guest용
-        if (guest) {
+        if (user==null) {
             GuestHomePayload payload = GuestHomePayload.builder()
                     .role("guest")
                     .guestAction(new HomeAction(
@@ -37,26 +33,10 @@ public class HomeController {
             return ResponseEntity.ok(ApiResponse.ok(guestHomeProps.message(), payload));
         }
 
-
-        //사용자 role 확인
-        User user=resolveUser(auth);
-
         ApiResponse<?extends HomePayload> payload=homeService.getHome(user);
         return ResponseEntity.ok(payload);
 
-
-
         }
-
-    //User 값 받아오기
-    //로그인 코드 작성 후 수정 필요
-    private User resolveUser(Authentication auth){
-        Object principal = auth.getPrincipal();
-        if(principal instanceof User u)
-            return u;
-        else return null;
-    }
-
 
     }
 
