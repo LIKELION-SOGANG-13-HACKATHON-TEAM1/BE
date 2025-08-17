@@ -60,5 +60,7 @@ public class HelpRequest {
         this.createdAt = java.time.OffsetDateTime.now();
         if (this.status == null) this.status = HelpRequestStatus.PENDING;
     }
+
+
 }
 

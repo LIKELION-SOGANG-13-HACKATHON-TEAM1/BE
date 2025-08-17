@@ -27,7 +27,7 @@ public class Review {
     private Match match;
 
     //전체 자리수 2개, 소숫점 자리 1개(0.0~5.0)
-    @Column(nullable=false,precision=2,scale=1)
+    @Column(nullable=false,precision=2)
     private Double rating;
 
     @Column(columnDefinition="TEXT")
