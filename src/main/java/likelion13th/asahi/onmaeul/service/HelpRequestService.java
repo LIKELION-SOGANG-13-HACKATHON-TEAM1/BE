@@ -2,9 +2,7 @@ package likelion13th.asahi.onmaeul.service;
 
 import jakarta.transaction.Transactional;
 import likelion13th.asahi.onmaeul.DTO.response.ApiResponse;
-import likelion13th.asahi.onmaeul.DTO.response.helpRequest.HelpRequestArticlePayload;
-import likelion13th.asahi.onmaeul.DTO.response.helpRequest.HelpRequestItem;
-import likelion13th.asahi.onmaeul.DTO.response.helpRequest.HelpRequestPayload;
+import likelion13th.asahi.onmaeul.DTO.response.helpRequest.*;
 import likelion13th.asahi.onmaeul.domain.HelpRequest;
 import likelion13th.asahi.onmaeul.domain.HelpRequestStatus;
 import likelion13th.asahi.onmaeul.domain.User;
@@ -15,10 +13,11 @@ import likelion13th.asahi.onmaeul.DTO.response.helpRequest.HelpRequestArticlePay
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.DeleteMapping;
 
 import java.awt.print.Pageable;
+import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static likelion13th.asahi.onmaeul.DTO.response.ApiResponse.ok;
 
@@ -140,11 +139,39 @@ public class HelpRequestService {
 
     //요청게시글 삭제하기
     // 로그인 기능 개발 후 작성자가 맞는지 확인 코드 작성 필요
-    public void deleteArticle(long id, User user){
+    public ApiResponse<DeletePayload> deleteArticle(long id, User user){
         HelpRequest helpRequest = helpRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("not found: " + id));
         helpRequestRepository.delete(helpRequest);
+
+        DeletePayload deletePayload =DeletePayload.builder()
+                .requestId(id)
+                .status(HelpRequestStatus.CANCELED.toString())
+                .deletedAt(OffsetDateTime.now())
+                .route("/help-requests")
+                .build();
+
+        return ok("요청글이 삭제되었습니다", deletePayload);
     }
+
+    @Transactional
+    public ApiResponse<UpdatePayload> patch(long id,User user){
+        HelpRequest helpRequest=helpRequestRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("not found: " + id));
+        helpRequest.update(Optional.ofNullable(helpRequest.getTitle()),Optional.ofNullable(helpRequest.getDescription()),
+                Optional.ofNullable(helpRequest.getLocation()),Optional.ofNullable(helpRequest.getLocationDetail()),
+                Optional.ofNullable(helpRequest.getCategory()),Optional.ofNullable(helpRequest.getImages()));
+
+        UpdatePayload deletePayload =UpdatePayload.builder()
+                .requestId(id)
+                .status(HelpRequestStatus.PENDING.toString())
+                .updatedAt(OffsetDateTime.now())
+                .route("/help-requests")
+                .build();
+
+        return ok("요청글이 수정되었습니다.",deletePayload);
+    }
+
 
     }
 

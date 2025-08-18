@@ -2,8 +2,10 @@ package likelion13th.asahi.onmaeul.controller;
 
 import jakarta.transaction.Transactional;
 import likelion13th.asahi.onmaeul.DTO.response.ApiResponse;
+import likelion13th.asahi.onmaeul.DTO.response.helpRequest.DeletePayload;
 import likelion13th.asahi.onmaeul.DTO.response.helpRequest.HelpRequestArticlePayload;
 import likelion13th.asahi.onmaeul.DTO.response.helpRequest.HelpRequestPayload;
+import likelion13th.asahi.onmaeul.DTO.response.helpRequest.UpdatePayload;
 import likelion13th.asahi.onmaeul.DTO.response.home.GuestHomePayload;
 import likelion13th.asahi.onmaeul.DTO.response.home.HomeAction;
 import likelion13th.asahi.onmaeul.DTO.response.home.HomePayload;
@@ -54,12 +56,17 @@ public class HelpRequestController {
         return ResponseEntity.ok(payload);
     }
 
+    //요청글 삭제하기
     @DeleteMapping("/{request_id}")
-    public ResponseEntity<Void> deleteArticle(@PathVariable("request_id")Long id,@AuthenticationPrincipal User user){
-        helpRequestService.deleteArticle(id,user);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ApiResponse<DeletePayload>> deleteArticle(@PathVariable("request_id")Long id,@AuthenticationPrincipal User user){
+        ApiResponse< DeletePayload > payload=helpRequestService.deleteArticle(id,user);
+        return ResponseEntity.ok(payload);
     }
 
-
-
+    //요청글 수정하기
+    @PatchMapping("/{request_id}")
+    public ResponseEntity<ApiResponse<UpdatePayload>> patchArticle(@PathVariable("request_id")Long id,@AuthenticationPrincipal User user){
+        ApiResponse<UpdatePayload> payload=helpRequestService.patch(id,user);
+        return ResponseEntity.ok(payload);
+    }
 }
