@@ -38,24 +38,4 @@ public class HelpRequestItem {
         private boolean canAccept;
     }
 
-    //entity를 DTO로 바꿔주는 method
-    public static HelpRequestItem fromEntity(HelpRequest e) {
-        //String format 입력
-        java.time.format.DateTimeFormatter fmt =
-                java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-
-        String statusStr = (e.getStatus() != null) ? e.getStatus().toString() : null;
-        boolean canAccept = (statusStr != null) && statusStr.equalsIgnoreCase("PENDING");
-
-        return HelpRequestItem.builder()
-                .requestId(e.getId())
-                .title(e.getTitle())
-                .location(e.getLocation())
-                .requestTime(e.getRequestTime().format(fmt))         // String으로 변환
-                .createdAt(e.getCreatedAt().format(fmt))             // String으로 변환
-                .status(statusStr)
-                .route("/help-requests/" + e.getId())
-                .uiFlags(new UiFlags(canAccept))
-                .build();
-    }
 }

@@ -1,6 +1,8 @@
 package likelion13th.asahi.onmaeul.controller;
 
+import jakarta.transaction.Transactional;
 import likelion13th.asahi.onmaeul.DTO.response.ApiResponse;
+import likelion13th.asahi.onmaeul.DTO.response.helpRequest.HelpRequestArticlePayload;
 import likelion13th.asahi.onmaeul.DTO.response.helpRequest.HelpRequestPayload;
 import likelion13th.asahi.onmaeul.DTO.response.home.GuestHomePayload;
 import likelion13th.asahi.onmaeul.DTO.response.home.HomeAction;
@@ -12,10 +14,7 @@ import likelion13th.asahi.onmaeul.service.HelpRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -45,4 +44,22 @@ public class HelpRequestController {
         return ResponseEntity.ok(payload);
 
     }
+
+    //요청글 상세보기
+    // 추후에 springSecurity에서 guest 접근 금지 코드 추가 필요
+    @GetMapping("/{request_id}")
+    public ResponseEntity<ApiResponse<HelpRequestArticlePayload>> getArticle(@PathVariable("request_id")Long id,@AuthenticationPrincipal User user){
+
+        ApiResponse<HelpRequestArticlePayload> payload=helpRequestService.findArticle(id,user);
+        return ResponseEntity.ok(payload);
+    }
+
+    @DeleteMapping("/{request_id}")
+    public ResponseEntity<Void> deleteArticle(@PathVariable("request_id")Long id,@AuthenticationPrincipal User user){
+        helpRequestService.deleteArticle(id,user);
+        return ResponseEntity.ok().build();
+    }
+
+
+
 }
