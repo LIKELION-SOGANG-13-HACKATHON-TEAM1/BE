@@ -1,10 +1,10 @@
 package likelion13th.asahi.onmaeul.service;
 
-import likelion13th.asahi.onmaeul.DTO.response.ApiResponse;
-import likelion13th.asahi.onmaeul.DTO.response.home.HomeAction;
-import likelion13th.asahi.onmaeul.DTO.response.home.HomePayload;
-import likelion13th.asahi.onmaeul.DTO.response.home.JuniorHomePayload;
-import likelion13th.asahi.onmaeul.DTO.response.home.SeniorHomePayload;
+import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
+import likelion13th.asahi.onmaeul.dto.response.home.HomeAction;
+import likelion13th.asahi.onmaeul.dto.response.home.HomePayload;
+import likelion13th.asahi.onmaeul.dto.response.home.JuniorHomePayload;
+import likelion13th.asahi.onmaeul.dto.response.home.SeniorHomePayload;
 import likelion13th.asahi.onmaeul.domain.User;
 import likelion13th.asahi.onmaeul.domain.UserRole;
 import likelion13th.asahi.onmaeul.repository.HelpRequestRepository;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static likelion13th.asahi.onmaeul.DTO.response.ApiResponse.ok;
+import static likelion13th.asahi.onmaeul.dto.response.ApiResponse.ok;
 
 @Service
 @RequiredArgsConstructor

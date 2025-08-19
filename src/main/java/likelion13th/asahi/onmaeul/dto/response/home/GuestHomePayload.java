@@ -1,4 +1,4 @@
-package likelion13th.asahi.onmaeul.DTO.response.home;
+package likelion13th.asahi.onmaeul.dto.response.home;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,14 +1,14 @@
 package likelion13th.asahi.onmaeul.controller;
 
 import jakarta.transaction.Transactional;
-import likelion13th.asahi.onmaeul.DTO.response.ApiResponse;
-import likelion13th.asahi.onmaeul.DTO.response.helpRequest.DeletePayload;
-import likelion13th.asahi.onmaeul.DTO.response.helpRequest.HelpRequestArticlePayload;
-import likelion13th.asahi.onmaeul.DTO.response.helpRequest.HelpRequestPayload;
-import likelion13th.asahi.onmaeul.DTO.response.helpRequest.UpdatePayload;
-import likelion13th.asahi.onmaeul.DTO.response.home.GuestHomePayload;
-import likelion13th.asahi.onmaeul.DTO.response.home.HomeAction;
-import likelion13th.asahi.onmaeul.DTO.response.home.HomePayload;
+import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
+import likelion13th.asahi.onmaeul.dto.response.helpRequest.DeletePayload;
+import likelion13th.asahi.onmaeul.dto.response.helpRequest.HelpRequestArticlePayload;
+import likelion13th.asahi.onmaeul.dto.response.helpRequest.HelpRequestPayload;
+import likelion13th.asahi.onmaeul.dto.response.helpRequest.UpdatePayload;
+import likelion13th.asahi.onmaeul.dto.response.home.GuestHomePayload;
+import likelion13th.asahi.onmaeul.dto.response.home.HomeAction;
+import likelion13th.asahi.onmaeul.dto.response.home.HomePayload;
 import likelion13th.asahi.onmaeul.config.props.GuestHomeProps;
 import likelion13th.asahi.onmaeul.domain.HelpRequestStatus;
 import likelion13th.asahi.onmaeul.domain.User;
