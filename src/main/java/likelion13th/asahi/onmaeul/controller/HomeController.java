@@ -1,9 +1,9 @@
 package likelion13th.asahi.onmaeul.controller;
 
-import likelion13th.asahi.onmaeul.DTO.response.ApiResponse;
-import likelion13th.asahi.onmaeul.DTO.response.home.GuestHomePayload;
-import likelion13th.asahi.onmaeul.DTO.response.home.HomeAction;
-import likelion13th.asahi.onmaeul.DTO.response.home.HomePayload;
+import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
+import likelion13th.asahi.onmaeul.dto.response.home.GuestHomePayload;
+import likelion13th.asahi.onmaeul.dto.response.home.HomeAction;
+import likelion13th.asahi.onmaeul.dto.response.home.HomePayload;
 import likelion13th.asahi.onmaeul.config.props.GuestHomeProps;
 import likelion13th.asahi.onmaeul.domain.User;
 import likelion13th.asahi.onmaeul.service.HomeService;
