@@ -1,10 +1,12 @@
 package likelion13th.asahi.onmaeul.controller;
 
 import likelion13th.asahi.onmaeul.DTO.response.SeniorHomeResponse;
+import likelion13th.asahi.onmaeul.auth.CustomUserDetails;
 import likelion13th.asahi.onmaeul.service.HomeService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
