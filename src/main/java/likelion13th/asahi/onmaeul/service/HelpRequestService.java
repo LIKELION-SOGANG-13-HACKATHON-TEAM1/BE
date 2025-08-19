@@ -1,15 +1,15 @@
 package likelion13th.asahi.onmaeul.service;
 
 import jakarta.transaction.Transactional;
-import likelion13th.asahi.onmaeul.DTO.response.ApiResponse;
-import likelion13th.asahi.onmaeul.DTO.response.helpRequest.*;
+import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
+import likelion13th.asahi.onmaeul.dto.response.helpRequest.*;
 import likelion13th.asahi.onmaeul.domain.HelpRequest;
 import likelion13th.asahi.onmaeul.domain.HelpRequestStatus;
 import likelion13th.asahi.onmaeul.domain.User;
 import likelion13th.asahi.onmaeul.domain.UserRole;
 import likelion13th.asahi.onmaeul.repository.HelpRequestRepository;
 import likelion13th.asahi.onmaeul.util.CursorUtil;
-import likelion13th.asahi.onmaeul.DTO.response.helpRequest.HelpRequestArticlePayload;
+import likelion13th.asahi.onmaeul.dto.response.helpRequest.HelpRequestArticlePayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static likelion13th.asahi.onmaeul.DTO.response.ApiResponse.ok;
+import static likelion13th.asahi.onmaeul.dto.response.ApiResponse.ok;
 
 
 @RequiredArgsConstructor

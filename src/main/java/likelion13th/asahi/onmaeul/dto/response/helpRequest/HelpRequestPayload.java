@@ -1,7 +1,7 @@
 package likelion13th.asahi.onmaeul.dto.response.helpRequest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import likelion13th.asahi.onmaeul.DTO.response.home.HomePayload;
+import likelion13th.asahi.onmaeul.dto.response.home.HomePayload;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

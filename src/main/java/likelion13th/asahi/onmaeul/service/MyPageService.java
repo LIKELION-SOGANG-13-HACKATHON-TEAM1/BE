@@ -33,14 +33,14 @@ public class MyPageService {
         User u = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저 없음: id=" + userId));
 
-        // 닉네임을 따로 안 쓰는 경우, user_nickname = user_name과 동일하게 셋팅
-        String name = u.getUsername();
-
         return EditMyPageResponse.builder()
                 .user_id(u.getId())
-                .user_name(name)
+                .user_name(u.getUsername())
+                .birth_date(u.getBirthDate() == null ? null : u.getBirthDate().toString()) // 선택 필드
+                .user_phonenumber(u.getPhoneNumber())
                 .user_introduce(u.getIntroduce())
-                .user_nickname(name)
+                .profile_url(u.getProfileUrl())
                 .build();
     }
+
 }

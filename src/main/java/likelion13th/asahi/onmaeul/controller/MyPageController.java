@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 public class MyPageController {
     private final MyPageService myPageService;
 
-    /** GET /mypage : 로그인(세션)되어 있다고 가정 */
+    /* 로그인(세션)되어 있다고 가정 */
     @GetMapping("/mypage")
     public ResponseEntity<ApiResponse<MyPageResponse>> getMyPage(
             @AuthenticationPrincipal CustomUserDetails me // 주입받기
@@ -27,7 +27,7 @@ public class MyPageController {
         );
     }
 
-    /** GET /mypage/edit : 수정 페이지 진입 (로그인 필요) */
+    /* 수정 페이지 진입 (로그인 필요) */
     @GetMapping("/mypage/edit")
     public ResponseEntity<ApiResponse<EditMyPageResponse>> getMyPageEdit(
             @AuthenticationPrincipal CustomUserDetails me
@@ -39,4 +39,5 @@ public class MyPageController {
                 ApiResponse.ok("내정보 수정페이지 조회 성공", data)
         );
     }
+
 }
