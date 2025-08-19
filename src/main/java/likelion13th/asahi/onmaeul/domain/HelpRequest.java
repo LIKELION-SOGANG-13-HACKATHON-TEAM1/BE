@@ -3,6 +3,9 @@ package likelion13th.asahi.onmaeul.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+import java.util.Optional;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -60,5 +63,18 @@ public class HelpRequest {
         this.createdAt = java.time.OffsetDateTime.now();
         if (this.status == null) this.status = HelpRequestStatus.PENDING;
     }
+
+    public void update(Optional<String> title, Optional<String> description,Optional<String>location,Optional<String>locationDetail,Optional<Category>category,Optional<List<String>> images){
+        title.ifPresent(t->this.title=t);
+        description.ifPresent(c->this.description=c);
+        location.ifPresent(e->this.location=e);
+        locationDetail.ifPresent(a->this.locationDetail=a);
+        category.ifPresent(k->this.category=k);
+        images.ifPresent(updatedImages -> {
+            this.images.clear(); // 기존 내용물을 모두 지우고
+            this.images.addAll(updatedImages); // 새로운 내용물을 모두 추가
+        });
+    }
+
 }
 
