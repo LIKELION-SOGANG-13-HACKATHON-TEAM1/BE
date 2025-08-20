@@ -46,6 +46,9 @@ public class HelpRequest {
     @Column(name = "request_time")
     private java.time.OffsetDateTime requestTime;
 
+    @Column(name = "estimated_minutes")
+    private Integer estimatedMinutes;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private java.time.OffsetDateTime createdAt;
 

@@ -24,6 +24,10 @@ public class Match {
     @JoinColumn(name = "helprequest_id", nullable = false, unique = true)
     private HelpRequest helpRequest;
 
+    // Match에 대한 Review를 참조하는 필드 추가
+    @OneToOne(mappedBy = "match", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Review review;
+
     /* 상태 */
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)

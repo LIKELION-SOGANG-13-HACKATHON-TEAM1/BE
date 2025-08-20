@@ -1,4 +1,4 @@
-package likelion13th.asahi.onmaeul.dto.response;
+package likelion13th.asahi.onmaeul.dto.response.myPage;
 
 import lombok.*;
 
@@ -6,7 +6,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EditMyPageResponse {
+public class EditMyPagePayload {
     private Long   user_id;
     private String user_name;         // 이름 (닉네임 분리 안할거니까 그냥 이름과 동일)
     private String birth_date;        // "YYYY-MM-DD" (문자열로 반환)
