@@ -40,7 +40,6 @@ public class MyPageService {
                 .user_id(u.getId())
                 .user_name(name)
                 .user_introduce(u.getIntroduce())
-                .user_nickname(name)
                 .build();
     }
 }

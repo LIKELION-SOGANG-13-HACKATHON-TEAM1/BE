@@ -31,7 +31,7 @@ public class HomeService {
                     .route("/request/chat")
                     .action("navigate").build();
 
-        //도움 요청 목록
+        //도움 요청 목록wjr
             HomeAction action2 = HomeAction.builder()
                     .title("도움 요청 목록")
                     .subtitle("이런 도움이 필요해요")

@@ -31,4 +31,4 @@ home:
     subtitle: "맞춤 홈 화면을 이용해 보세요"
     route: "/login"
     action: "navigate"
-    message: "비로그인 사용자용 홈"
+    message: "비로그인 사용자용 홈"a
