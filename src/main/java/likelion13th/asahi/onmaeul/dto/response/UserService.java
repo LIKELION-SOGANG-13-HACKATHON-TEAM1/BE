@@ -18,7 +18,7 @@ public class UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     public Long save(AddUserRequest dto){
-        String introduceToSave=(dto.getUserRole() == UserRole.JUNIOR)?dto.getIntroduce().get():null;
+        String introduceToSave=(dto.getUserRole() == UserRole.JUNIOR)?dto.getIntroduce():null;
 
             return userRepository.save(User.builder()
                     .username(dto.getUsername())

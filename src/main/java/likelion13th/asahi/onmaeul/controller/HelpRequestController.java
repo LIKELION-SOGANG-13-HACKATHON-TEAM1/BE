@@ -1,6 +1,7 @@
 package likelion13th.asahi.onmaeul.controller;
 
 import jakarta.transaction.Transactional;
+import likelion13th.asahi.onmaeul.dto.request.UpdateRequest;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
 import likelion13th.asahi.onmaeul.dto.response.helpRequest.DeletePayload;
 import likelion13th.asahi.onmaeul.dto.response.helpRequest.HelpRequestArticlePayload;
@@ -52,8 +53,8 @@ public class HelpRequestController {
 
     //요청글 수정하기
     @PatchMapping("/{request_id}")
-    public ResponseEntity<ApiResponse<UpdatePayload>> patchArticle(@PathVariable("request_id")Long id,@AuthenticationPrincipal User user){
-        ApiResponse<UpdatePayload> payload=helpRequestService.patch(id,user);
+    public ResponseEntity<ApiResponse<UpdatePayload>> patchArticle(@PathVariable("request_id")Long id, @AuthenticationPrincipal User user, @RequestBody UpdateRequest updateRequest){
+        ApiResponse<UpdatePayload> payload=helpRequestService.patch(id,user,updateRequest);
         return ResponseEntity.ok(payload);
     }
 }

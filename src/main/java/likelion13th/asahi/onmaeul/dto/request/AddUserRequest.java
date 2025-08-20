@@ -11,7 +11,7 @@ public class AddUserRequest {
     private String username;
     private String phoneNumber;
     private String profileUrl;
-    private Optional<String> introduce; // role이 senior인 경우 null이어야한다
+    private String introduce; // role이 senior인 경우 null이어야한다
     private String password;
     private UserRole userRole;
 }
