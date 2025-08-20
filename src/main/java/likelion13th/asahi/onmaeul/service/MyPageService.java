@@ -7,8 +7,6 @@ import likelion13th.asahi.onmaeul.dto.response.myPage.*;
 import likelion13th.asahi.onmaeul.repository.MatchRepository;
 import likelion13th.asahi.onmaeul.repository.UserRepository;
 import lombok.*;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,64 +51,27 @@ public class MyPageService {
                 .build();
     }
 
-    /**
-     * 도움 신청 내역(어르신이 도움 받은 내역) 리스트
-     * size, cursor 모두 null → 전체 반환
-     * size>0 → 커서 페이징 (cursor=null이면 최신부터)
-     */
+    /** 도움 신청 내역(어르신이 도움 받은 내역) 리스트 */
     @Transactional(readOnly = true)
-    public HelpListPayload getReceivedHelpList(Long seniorUserId, Integer size, Long cursor) {
+    public HelpListPayload getReceivedHelpList(Long seniorUserId) { // size, cursor 제거
 
-        final boolean all = (size == null && cursor == null); // 전체 조회 여부를 판단
+        List<Match> matches = matchRepository.findAllForSenior(seniorUserId); // 페이징 없이 전체 조회
 
-        List<Match> matches;
-        if (all) {
-            matches = matchRepository.findAllForSenior(seniorUserId);
-        } else {
-            int limit = (size == null || size <= 0) ? 20 : size;
-            // limit+1 로 조회하여 has_next 판단
-            matches = matchRepository.findSliceForSenior(
-                    seniorUserId,
-                    cursor,                           // null이면 최신부터
-                    (Pageable) PageRequest.of(0, limit + 1)
-            );
-        }
-
-        // DTO 매핑
         var items = matches.stream()
                 .map(m -> HelpItemPayload.builder()
                         .match_id(m.getId())
-                        .help_title(m.getHelpRequest().getTitle())       // HelpRequest.title 가정
-                        .matched_at(toIso(m.getMatchedAt()))             // Match.matchedAt
-                        .location(m.getHelpRequest().getLocation())      // HelpRequest.location 가정
+                        .help_title(m.getHelpRequest().getTitle())
+                        .matched_at(toIso(m.getMatchedAt()))
+                        .location(m.getHelpRequest().getLocation())
                         .build())
                 .collect(Collectors.toList());
 
-        PagingInfo paging;
-        if (all) {
-            paging = PagingInfo.builder()
-                    .all(true)
-                    .count(items.size())
-                    .has_next(false)
-                    .next_cursor(null)
-                    .build();
-        } else {
-            int limit = (size == null || size <= 0) ? 20 : size;
-            boolean hasNext = items.size() > limit;
-            if (hasNext) {
-                items = items.subList(0, limit);
-            }
-            String nextCursor = hasNext
-                    ? String.valueOf(items.get(items.size() - 1).getMatch_id())
-                    : null;
-
-            paging = PagingInfo.builder()
-                    .all(false)
-                    .count(items.size())
-                    .has_next(hasNext)
-                    .next_cursor(nextCursor)
-                    .build();
-        }
+        PagingInfo paging = PagingInfo.builder()
+                .all(true)
+                .count(items.size())
+                .has_next(false)
+                .next_cursor(null)
+                .build();
 
         return HelpListPayload.builder()
                 .help_list(items)
@@ -164,6 +125,40 @@ public class MyPageService {
     private String formatKorean(OffsetDateTime t) {
         if (t == null) return null;
         return t.format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm"));
+    }
+
+    /**
+     * 도움 제공 내역(청년이 도움 준 내역) 리스트
+     * 페이징 없이 전체 반환
+     */
+    @Transactional(readOnly = true)
+    public HelpListPayload getOfferedHelpList(Long youthUserId) {
+
+        // 청년 ID(responserId)를 통해 매칭 리스트를 조회
+        List<Match> matches = matchRepository.findAllByResponserId(youthUserId);
+
+        // DTO 매핑
+        var items = matches.stream()
+                .map(m -> HelpItemPayload.builder()
+                        .match_id(m.getId())
+                        .help_title(m.getHelpRequest().getTitle())
+                        .matched_at(toIso(m.getMatchedAt()))
+                        .location(m.getHelpRequest().getLocation())
+                        .build())
+                .collect(Collectors.toList());
+
+        // 페이징 정보 (명세서에 맞게 all=true)
+        PagingInfo paging = PagingInfo.builder()
+                .all(true)
+                .count(items.size())
+                .has_next(false)
+                .next_cursor(null)
+                .build();
+
+        return HelpListPayload.builder()
+                .help_list(items)
+                .paging(paging)
+                .build();
     }
 
 }

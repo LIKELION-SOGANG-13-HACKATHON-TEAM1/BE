@@ -44,4 +44,7 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
             @Param("matchId") Long matchId,
             @Param("seniorId") Long seniorId
     );
+
+    // 청년(responser) ID로 모든 매칭 내역을 찾는 메소드
+    List<Match> findAllByResponserId(Long responserId);
 }

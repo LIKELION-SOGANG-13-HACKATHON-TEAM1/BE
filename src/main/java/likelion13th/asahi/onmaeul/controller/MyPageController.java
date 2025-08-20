@@ -51,7 +51,7 @@ public class MyPageController {
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) Long cursor
     ) {
-        HelpListPayload data = myPageService.getReceivedHelpList(me.getId(), size, cursor);
+        HelpListPayload data = myPageService.getReceivedHelpList(me.getId());
         return ResponseEntity.ok(ApiResponse.ok("도움 받은 내역 조회 성공", data));
     }
 
@@ -63,5 +63,16 @@ public class MyPageController {
     ) {
         var data = myPageService.getReceivedHelpDetailMinimal(me.getId(), matchId);
         return ResponseEntity.ok(ApiResponse.ok("도움 받은 내역 상세페이지 조회 성공", data));
+    }
+
+    /** 도움 제공 내역(청년이 도움 준 내역) 리스트 조회 */
+    @PreAuthorize("hasRole('JUNIOR')") // 청년 권한으로 설정
+    @GetMapping("/offer")
+    public ResponseEntity<ApiResponse<HelpListPayload>> getMyOfferedHelp(
+            @AuthenticationPrincipal CustomUserDetails me
+    ) {
+        // 청년의 ID를 서비스 메소드에 전달
+        HelpListPayload data = myPageService.getOfferedHelpList(me.getId());
+        return ResponseEntity.ok(ApiResponse.ok("도움 준 내역 조회 성공", data));
     }
 }
