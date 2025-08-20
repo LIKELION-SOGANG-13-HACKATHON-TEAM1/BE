@@ -1,10 +1,7 @@
 package likelion13th.asahi.onmaeul.controller;
 
 import likelion13th.asahi.onmaeul.auth.CustomUserDetails;
-import likelion13th.asahi.onmaeul.dto.response.myPage.EditMyPagePayload;
-import likelion13th.asahi.onmaeul.dto.response.myPage.HelpListPayload;
-import likelion13th.asahi.onmaeul.dto.response.myPage.HelpReceivedDetailPayload;
-import likelion13th.asahi.onmaeul.dto.response.myPage.MyPagePayload;
+import likelion13th.asahi.onmaeul.dto.response.myPage.*;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
 import likelion13th.asahi.onmaeul.service.MyPageService;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +40,8 @@ public class MyPageController {
                 ApiResponse.ok("내정보 수정페이지 조회 성공", data)
         );
     }
-    /* 도움 신청 내역(어르신이 도움 받은 내역) 리스트 조회 */
+
+    /** 도움 신청 내역(어르신이 도움 받은 내역) 리스트 조회 */
     @PreAuthorize("hasRole('SENIOR')")
     @GetMapping("/request")
     public ResponseEntity<ApiResponse<HelpListPayload>> getMyReceivedHelp(
@@ -55,18 +53,19 @@ public class MyPageController {
         return ResponseEntity.ok(ApiResponse.ok("도움 받은 내역 조회 성공", data));
     }
 
+    /** 도움 신청 내역(어르신이 도움 받은 내역) 상세 글 조회 */
     @PreAuthorize("hasRole('SENIOR')")
     @GetMapping("/request/{matchId}")
     public ResponseEntity<ApiResponse<HelpReceivedDetailPayload>> getReceivedHelpDetail(
             @AuthenticationPrincipal CustomUserDetails me,
             @PathVariable Long matchId
     ) {
-        var data = myPageService.getReceivedHelpDetailMinimal(me.getId(), matchId);
+        var data = myPageService.getReceivedHelpDetail(me.getId(), matchId);
         return ResponseEntity.ok(ApiResponse.ok("도움 받은 내역 상세페이지 조회 성공", data));
     }
 
-    /** 도움 제공 내역(청년이 도움 준 내역) 리스트 조회 */
-    @PreAuthorize("hasRole('JUNIOR')") // 청년 권한으로 설정
+    /** 도움 수락 내역(청년이 도움 준 내역) 리스트 조회 */
+    @PreAuthorize("hasRole('JUNIOR')")
     @GetMapping("/offer")
     public ResponseEntity<ApiResponse<HelpListPayload>> getMyOfferedHelp(
             @AuthenticationPrincipal CustomUserDetails me
@@ -74,5 +73,27 @@ public class MyPageController {
         // 청년의 ID를 서비스 메소드에 전달
         HelpListPayload data = myPageService.getOfferedHelpList(me.getId());
         return ResponseEntity.ok(ApiResponse.ok("도움 준 내역 조회 성공", data));
+    }
+
+    /** 도움 수락 내역(청년이 도움 준 내역) 상세 글 조회 */
+    @PreAuthorize("hasRole('JUNIOR')")
+    @GetMapping("/offer/{matchId}")
+    public ResponseEntity<ApiResponse<HelpOfferedDetailPayload>> getOfferedHelpDetail(
+            @AuthenticationPrincipal CustomUserDetails me,
+            @PathVariable Long matchId
+    ) {
+        var data = myPageService.getOfferedHelpDetail(me.getId(), matchId);
+        return ResponseEntity.ok(ApiResponse.ok("도움 준 내역 상세페이지 조회 성공", data));
+    }
+
+    /** 받은 리뷰 목록 조회 (청년용) */
+    @PreAuthorize("hasRole('JUNIOR')")
+    @GetMapping("/review")
+    public ResponseEntity<ApiResponse<ReviewListPayload>> getReceivedReviewList(
+            @AuthenticationPrincipal CustomUserDetails me
+    ) {
+        // 청년의 ID를 서비스 메소드에 전달
+        ReviewListPayload data = myPageService.getReceivedReviewList(me.getId());
+        return ResponseEntity.ok(ApiResponse.ok("받은 리뷰 내역 조회 성공", data));
     }
 }

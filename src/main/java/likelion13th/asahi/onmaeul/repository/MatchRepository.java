@@ -45,6 +45,21 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
             @Param("seniorId") Long seniorId
     );
 
-    // 청년(responser) ID로 모든 매칭 내역을 찾는 메소드
+    /** 청년(responser) ID로 모든 매칭 내역을 찾는 메소드 */
     List<Match> findAllByResponserId(Long responserId);
+
+    /** 청년(JUNIOR)이 제공한 도움에 대한 상세 정보 조회 */
+    @Query("""
+        SELECT m
+        FROM Match m
+        JOIN FETCH m.helpRequest hr
+        JOIN FETCH hr.requester r
+        LEFT JOIN FETCH m.review
+        WHERE m.id = :matchId
+          AND m.responser.id = :juniorId
+        """)
+    Optional<Match> findDetailForJunior(
+            @Param("matchId") Long matchId,
+            @Param("juniorId") Long juniorId
+    );
 }

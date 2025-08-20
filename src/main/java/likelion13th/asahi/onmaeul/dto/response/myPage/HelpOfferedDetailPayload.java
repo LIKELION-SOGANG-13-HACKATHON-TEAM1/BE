@@ -1,6 +1,9 @@
 package likelion13th.asahi.onmaeul.dto.response.myPage;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -8,8 +11,8 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-/* 어르신용 VIEW */
-public class HelpReceivedDetailPayload {
+/* 청년용 VIEW */
+public class HelpOfferedDetailPayload {
     private Long   match_id;
 
     private String title;             // 제목
@@ -20,4 +23,8 @@ public class HelpReceivedDetailPayload {
     private String description;       // 요청사항 본문
 
     private List<String> images;      // 첨부 이미지 URL들
+
+    // 하단 리뷰 영역
+    private Double rating_stars;     // 별점 (없으면 null)
+    private String  review_text;      // 후기 (없으면 null)
 }

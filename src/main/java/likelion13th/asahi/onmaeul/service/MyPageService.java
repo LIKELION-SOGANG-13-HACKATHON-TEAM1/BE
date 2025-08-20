@@ -2,9 +2,11 @@ package likelion13th.asahi.onmaeul.service;
 
 import likelion13th.asahi.onmaeul.domain.HelpRequest;
 import likelion13th.asahi.onmaeul.domain.Match;
+import likelion13th.asahi.onmaeul.domain.Review;
 import likelion13th.asahi.onmaeul.domain.User;
 import likelion13th.asahi.onmaeul.dto.response.myPage.*;
 import likelion13th.asahi.onmaeul.repository.MatchRepository;
+import likelion13th.asahi.onmaeul.repository.ReviewRepository;
 import likelion13th.asahi.onmaeul.repository.UserRepository;
 import lombok.*;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ public class MyPageService {
 
     private final UserRepository userRepository;
     private final MatchRepository matchRepository;
+    private final ReviewRepository reviewRepository;
 
     public MyPagePayload getMyPageById(Long userId) {
         // DB에서 User 조회
@@ -84,14 +87,14 @@ public class MyPageService {
     }
 
     @Transactional(readOnly = true)
-    public HelpReceivedDetailPayload getReceivedHelpDetailMinimal(Long seniorId, Long matchId) {
-        // 1) 권한/소유 확인: 로그인한 어르신의 매칭만 조회됨
+    public HelpReceivedDetailPayload getReceivedHelpDetail(Long seniorId, Long matchId) {
+        // 권한/소유 확인: 로그인한 어르신의 매칭만 조회됨
         Match m = matchRepository.findDetailForSenior(matchId, seniorId)
                 .orElseThrow(() -> new IllegalArgumentException("매칭을 찾을 수 없습니다."));
 
         HelpRequest hr = m.getHelpRequest();
 
-        // 2) 소요시간 "X시간 Y분" 가공 (없으면 null)
+        // 소요시간 "X시간 Y분" 가공 (없으면 null)
         String durationText = null;
         Integer minutes = hr.getEstimatedMinutes(); // 프로젝트 엔티티에 맞게 사용
         if (minutes != null) {
@@ -99,14 +102,10 @@ public class MyPageService {
             durationText = (h > 0 ? h + "시간 " : "") + mm + "분";
         }
 
-        // 3) 첨부 이미지 URL 목록 (없으면 빈 리스트)
+        // 첨부 이미지 URL 목록 (없으면 빈 리스트)
         List<String> images = hr.getImages();
 
-        // 4) 리뷰(선택)
-        Double rating = (m.getReview() != null) ? m.getReview().getRating() : null;
-        String  review = (m.getReview() != null) ? m.getReview().getContent() : null;
-
-        // 5) 화면 전용 페이로드 구성
+        // 화면 전용 페이로드 구성
         return HelpReceivedDetailPayload.builder()
                 .match_id(m.getId())
                 .title(hr.getTitle())
@@ -116,8 +115,6 @@ public class MyPageService {
                 .duration_text(durationText)
                 .description(hr.getDescription())
                 .images(images)
-                .rating_stars(rating)
-                .review_text(review)
                 .build();
     }
 
@@ -127,10 +124,7 @@ public class MyPageService {
         return t.format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm"));
     }
 
-    /**
-     * 도움 제공 내역(청년이 도움 준 내역) 리스트
-     * 페이징 없이 전체 반환
-     */
+    /** 도움 제공 내역(청년이 도움 준 내역) 리스트 - 페이징 없이 전체 반환 */
     @Transactional(readOnly = true)
     public HelpListPayload getOfferedHelpList(Long youthUserId) {
 
@@ -157,6 +151,70 @@ public class MyPageService {
 
         return HelpListPayload.builder()
                 .help_list(items)
+                .paging(paging)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public HelpOfferedDetailPayload getOfferedHelpDetail(Long juniorId, Long matchId) {
+        // 권한/소유 확인: 로그인한 청년의 매칭만 조회됨
+        Match m = matchRepository.findDetailForJunior(matchId, juniorId)
+                .orElseThrow(() -> new IllegalArgumentException("매칭을 찾을 수 없습니다."));
+
+        HelpRequest hr = m.getHelpRequest();
+
+        // 소요시간 "X시간 Y분" 가공
+        String durationText = null;
+        Integer minutes = hr.getEstimatedMinutes();
+        if (minutes != null) {
+            int h = minutes / 60, mm = minutes % 60;
+            durationText = (h > 0 ? h + "시간 " : "") + mm + "분";
+        }
+
+        // 리뷰 정보
+        Double rating = (m.getReview() != null) ? m.getReview().getRating() : null;
+        String review = (m.getReview() != null) ? m.getReview().getContent() : null;
+
+        // DTO 구성
+        return HelpOfferedDetailPayload.builder()
+                .match_id(m.getId())
+                .title(hr.getTitle())
+                .requester_name(hr.getRequester().getUsername())
+                .location(hr.getLocation())
+                .request_time(formatKorean(hr.getRequestTime()))
+                .duration_text(durationText)
+                .description(hr.getDescription())
+                .images(hr.getImages())
+                .rating_stars(rating)
+                .review_text(review)
+                .build();
+    }
+
+    /** 받은 리뷰 목록 조회 (청년용) */
+    @Transactional(readOnly = true)
+    public ReviewListPayload getReceivedReviewList(Long juniorId) {
+        // 청년 ID(juniorId)를 통해 받은 리뷰 리스트를 조회
+        List<Review> reviews = reviewRepository.findAllByJuniorId(juniorId);
+
+        // DTO 매핑
+        var items = reviews.stream()
+                .map(r -> ReviewItemPayload.builder()
+                        .id(r.getId())
+                        .content(r.getContent())
+                        .rating(r.getRating())
+                        .build())
+                .collect(Collectors.toList());
+
+        // 페이징 정보 (명세서에 맞게 all=true)
+        PagingInfo paging = PagingInfo.builder()
+                .all(true)
+                .count(items.size())
+                .has_next(false)
+                .next_cursor(null)
+                .build();
+
+        return ReviewListPayload.builder()
+                .review_list(items)
                 .paging(paging)
                 .build();
     }
