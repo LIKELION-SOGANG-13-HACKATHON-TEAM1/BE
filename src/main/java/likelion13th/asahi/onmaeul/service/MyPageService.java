@@ -219,4 +219,38 @@ public class MyPageService {
                 .build();
     }
 
+    /** 받은 리뷰 상세 조회 (청년용) */
+    @Transactional(readOnly = true)
+    public ReviewDetailPayload getReceivedReviewDetail(Long juniorId, Long reviewId) {
+        // 1) 권한/소유 확인: 로그인한 청년이 받은 리뷰만 조회됨
+        Review review = reviewRepository.findReviewDetail(reviewId, juniorId)
+                .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
+
+        HelpRequest hr = review.getMatch().getHelpRequest();
+
+        // 2) 소요시간 "X시간 Y분" 가공
+        String durationText = null;
+        Integer minutes = hr.getEstimatedMinutes();
+        if (minutes != null) {
+            int h = minutes / 60, mm = minutes % 60;
+            durationText = (h > 0 ? h + "시간 " : "") + mm + "분";
+        }
+
+        // 3) DTO 구성
+        return ReviewDetailPayload.builder()
+                .review_id(review.getId())
+                .rating_stars(review.getRating())
+                .review_text(review.getContent())
+                .help_request(ReviewDetailPayload.HelpRequestInfo.builder()
+                        .request_id(hr.getId())
+                        .title(hr.getTitle())
+                        .requester_name(hr.getRequester().getUsername())
+                        .location(hr.getLocation())
+                        .request_time(formatKorean(hr.getRequestTime()))
+                        .duration_text(durationText)
+                        .description(hr.getDescription())
+                        .images(hr.getImages())
+                        .build())
+                .build();
+    }
 }

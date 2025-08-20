@@ -96,4 +96,15 @@ public class MyPageController {
         ReviewListPayload data = myPageService.getReceivedReviewList(me.getId());
         return ResponseEntity.ok(ApiResponse.ok("받은 리뷰 내역 조회 성공", data));
     }
+
+    /** 받은 리뷰 상세 조회 (청년용) */
+    @PreAuthorize("hasRole('JUNIOR')")
+    @GetMapping("/review/{reviewId}")
+    public ResponseEntity<ApiResponse<ReviewDetailPayload>> getReceivedReviewDetail(
+            @AuthenticationPrincipal CustomUserDetails me,
+            @PathVariable Long reviewId
+    ) {
+        var data = myPageService.getReceivedReviewDetail(me.getId(), reviewId);
+        return ResponseEntity.ok(ApiResponse.ok("받은 리뷰 상세 조회 성공", data));
+    }
 }
