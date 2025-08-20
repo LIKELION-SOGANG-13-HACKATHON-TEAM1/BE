@@ -1,10 +1,8 @@
 package likelion13th.asahi.onmaeul.service;
 
-import likelion13th.asahi.onmaeul.domain.HelpRequest;
-import likelion13th.asahi.onmaeul.domain.Match;
-import likelion13th.asahi.onmaeul.domain.Review;
-import likelion13th.asahi.onmaeul.domain.User;
+import likelion13th.asahi.onmaeul.domain.*;
 import likelion13th.asahi.onmaeul.dto.response.myPage.*;
+import likelion13th.asahi.onmaeul.repository.ClassParticipantRepository;
 import likelion13th.asahi.onmaeul.repository.MatchRepository;
 import likelion13th.asahi.onmaeul.repository.ReviewRepository;
 import likelion13th.asahi.onmaeul.repository.UserRepository;
@@ -12,7 +10,9 @@ import lombok.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +24,7 @@ public class MyPageService {
     private final UserRepository userRepository;
     private final MatchRepository matchRepository;
     private final ReviewRepository reviewRepository;
+    private final ClassParticipantRepository classParticipantRepository;
 
     public MyPagePayload getMyPageById(Long userId) {
         // DB에서 User 조회
@@ -84,6 +85,13 @@ public class MyPageService {
 
     private String toIso(OffsetDateTime odt) {
         return odt == null ? null : odt.toString();
+    }
+
+    // 오버로딩
+    private String toIso(LocalDateTime ldt) {
+        if (ldt == null) return null;
+        OffsetDateTime odt = ldt.atOffset(ZoneOffset.of("+09:00"));
+        return odt.toString();
     }
 
     @Transactional(readOnly = true)
@@ -251,6 +259,41 @@ public class MyPageService {
                         .description(hr.getDescription())
                         .images(hr.getImages())
                         .build())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public ClassListPayload getAppliedClasses(Long userId, String status) {
+
+        // 1. Repository에서 데이터 조회
+        List<ClassParticipant> participants = classParticipantRepository.findByUserIdAndStatus(userId, status);
+
+        // 2. DTO 매핑
+        var items = participants.stream()
+                .map(cp -> ClassItemPayload.builder()
+                        .id(cp.getClazz().getId()) // clazz로 변경
+                        .title(cp.getClazz().getTitle())
+                        .host_id(cp.getClazz().getHost().getId())
+                        .host_name(cp.getClazz().getHost().getUsername())
+                        .schedule(toIso(cp.getClazz().getSchedule())) // LocalDateTime 변환
+                        .status(cp.getClazz().getStatus().name()) // Classes 엔티티의 status 사용
+                        .description(cp.getClazz().getDescription())
+                        .build())
+                .collect(Collectors.toList());
+
+        // 3. PagingInfo 구성 (전체 조회)
+        PagingInfo paging = PagingInfo.builder()
+                .all(true)
+                .count(items.size())
+                .has_next(false)
+                .next_cursor(null)
+                .build();
+
+        // 4. 최종 Payload 반환
+        return ClassListPayload.builder()
+                .filter_status(status)
+                .class_list(items)
+                .paging(paging)
                 .build();
     }
 }

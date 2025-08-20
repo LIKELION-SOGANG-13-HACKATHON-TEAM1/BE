@@ -107,4 +107,15 @@ public class MyPageController {
         var data = myPageService.getReceivedReviewDetail(me.getId(), reviewId);
         return ResponseEntity.ok(ApiResponse.ok("받은 리뷰 상세 조회 성공", data));
     }
+
+    /** 수업 신청 내역(수강 중인 수업 내역) 목록 조회 */
+    @PreAuthorize("hasAnyRole('SENIOR', 'JUNIOR')")
+    @GetMapping("/class")
+    public ResponseEntity<ApiResponse<ClassListPayload>> getAppliedClasses(
+            @AuthenticationPrincipal CustomUserDetails me,
+            @RequestParam(required = false) String filter_status
+    ) {
+        ClassListPayload data = myPageService.getAppliedClasses(me.getId(), filter_status);
+        return ResponseEntity.ok(ApiResponse.ok("신청한 수업 목록 조회 성공", data));
+    }
 }
