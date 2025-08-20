@@ -29,18 +29,6 @@ public class HelpRequestController {
     public ResponseEntity<ApiResponse<? extends HomePayload>> getMain(@RequestParam(defaultValue = "5") int limitFeed,
                                                                       @RequestParam(required = false) String nextCursor, @AuthenticationPrincipal User user ){
 
-        //guest용
-        if (user==null) {
-            GuestHomePayload payload = GuestHomePayload.builder()
-                    .role("guest")
-                    .guestAction(new HomeAction(
-                            guestHomeProps.title(), guestHomeProps.subtitle(),
-                            guestHomeProps.route(), guestHomeProps.action()))
-                    .build();
-            return ResponseEntity.ok(ApiResponse.ok(guestHomeProps.message(), payload));
-        }
-
-        //사용자 role 확인
         ApiResponse<HelpRequestPayload> payload=helpRequestService.findMain(nextCursor,HelpRequestStatus.PENDING,user.getRole(),limitFeed);
 
         return ResponseEntity.ok(payload);
@@ -48,7 +36,6 @@ public class HelpRequestController {
     }
 
     //요청글 상세보기
-    // 추후에 springSecurity에서 guest 접근 금지 코드 추가 필요
     @GetMapping("/{request_id}")
     public ResponseEntity<ApiResponse<HelpRequestArticlePayload>> getArticle(@PathVariable("request_id")Long id,@AuthenticationPrincipal User user){
 

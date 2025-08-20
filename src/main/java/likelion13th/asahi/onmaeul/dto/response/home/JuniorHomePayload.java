@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class JuniorHomePayload implements HomePayload {
+    //junior 전용 home dto
     private String role;
     @JsonProperty("list_endpoint")
     private String listEndpoint;

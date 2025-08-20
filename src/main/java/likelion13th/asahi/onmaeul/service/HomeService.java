@@ -51,7 +51,7 @@ public class HomeService {
 
         //청년용 main 화면
         else{
-            String listEndPoint="/help-requests?status=pending&limit=5";
+            String listEndPoint="/helpRequests?status=pending&limit=5";
             JuniorHomePayload payload=JuniorHomePayload.builder()
                     .role("junior")
                     .listEndpoint(listEndPoint)

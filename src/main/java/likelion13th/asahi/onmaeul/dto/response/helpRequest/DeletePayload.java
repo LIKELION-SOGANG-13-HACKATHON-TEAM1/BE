@@ -9,6 +9,7 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 public class DeletePayload {
+    //상세 요청글 삭제용
     @JsonProperty("request_id")
     private final Long requestId;
 

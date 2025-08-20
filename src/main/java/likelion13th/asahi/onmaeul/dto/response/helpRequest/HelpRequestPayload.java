@@ -1,7 +1,7 @@
 package likelion13th.asahi.onmaeul.dto.response.helpRequest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import likelion13th.asahi.onmaeul.DTO.response.home.HomePayload;
+import likelion13th.asahi.onmaeul.dto.response.home.HomePayload;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class HelpRequestPayload implements HomePayload {
+    //요청 main 화면용 dto
     List<HelpRequestItem> items;
     @JsonProperty("next_cursor")
     String nextCursor;

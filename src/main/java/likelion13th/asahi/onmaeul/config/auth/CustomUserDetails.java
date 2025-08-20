@@ -1,4 +1,4 @@
-package likelion13th.asahi.onmaeul.auth;
+package likelion13th.asahi.onmaeul.config.auth;
 
 import likelion13th.asahi.onmaeul.domain.User;
 import likelion13th.asahi.onmaeul.domain.UserRole;

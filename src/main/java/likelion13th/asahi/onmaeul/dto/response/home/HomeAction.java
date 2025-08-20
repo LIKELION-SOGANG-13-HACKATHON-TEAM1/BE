@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class HomeAction{
+    //senior 전용 home에서 버튼
     private String title;
     private String subtitle;
     private String route;
