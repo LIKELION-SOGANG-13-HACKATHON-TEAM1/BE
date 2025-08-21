@@ -13,7 +13,9 @@ import likelion13th.asahi.onmaeul.repository.HelpRequestRepository;
 import likelion13th.asahi.onmaeul.util.CursorUtil;
 import likelion13th.asahi.onmaeul.dto.response.helpRequest.HelpRequestArticlePayload;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -86,6 +88,42 @@ var last = helpRequests.get(helpRequests.size() - 1); //helpRequestItem 속 마�
                 .build();
 
         return ok(findRole + "도움 요청 리스트 조회 성공",helpRequestPayload);
+    }
+
+    public ApiResponse<HelpRequestPayload> search(String keyword,UserRole role,int page,int size){
+        //pageable 정보
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        //Repository에서 키워드로 데이터 조회
+        Page<HelpRequest> helpRequestPage = helpRequestRepository.findByKeyword(keyword, pageable);
+        List<HelpRequest> helpRequests = helpRequestPage.getContent();
+
+        List<HelpRequestItem>items=helpRequests.stream()
+                .map(e->{
+                    boolean canAccept=(e.getStatus() == HelpRequestStatus.PENDING)&&(role==UserRole.JUNIOR);//status가 pending이고 role이 junior여만 수락 버튼 뜬다
+                    return HelpRequestItem.builder()
+                            .requestId(e.getId())
+                            .title(e.getTitle())
+                            .location(e.getLocation())
+                            .requestTime(e.getRequestTime().toString())
+                            .createdAt(e.getCreatedAt().toString())
+                            .status(e.getStatus().toString())
+                            .route("/help-requests/" + e.getId())
+                            .uiFlags(new HelpRequestItem.UiFlags(canAccept))
+                            .build();
+
+                })
+                .toList();
+
+        String findRole = role.equals(UserRole.SENIOR) ? "senior" : "junior";
+
+        HelpRequestPayload helpRequestPayload=HelpRequestPayload.builder()
+                .items(items)
+                .nextCursor(null)//오프셋 기반 페이지네이션 사용했기에 커서 사용은 안한다
+                .hasMore(helpRequestPage.hasNext())
+                .role(findRole)
+                .build();
+        return ok("도움 요청 리스트 검색 성공",helpRequestPayload);
     }
 
     public ApiResponse<HelpRequestArticlePayload> findArticle(long id, User user) {

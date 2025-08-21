@@ -15,10 +15,10 @@ import java.util.List;
 @Builder
 public class HelpRequestPayload implements HomePayload {
     //요청 main 화면용 dto
-    List<HelpRequestItem> items;
+    private List<HelpRequestItem> items;
     @JsonProperty("next_cursor")
-    String nextCursor;
+    private String nextCursor;
     @JsonProperty("has_more")
-    boolean hasMore;
-    String role;
+    private boolean hasMore;
+    private String role;
 }

@@ -2,6 +2,7 @@ package likelion13th.asahi.onmaeul.repository;
 
 import likelion13th.asahi.onmaeul.domain.HelpRequest;
 import likelion13th.asahi.onmaeul.domain.HelpRequestStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,4 +27,8 @@ public interface HelpRequestRepository extends JpaRepository<HelpRequest, Long> 
     ORDER BY h.createdAt DESC, h.id DESC
 """)
     List<HelpRequest>findNextPageByStatus(@Param("status")HelpRequestStatus status, @Param("createdAt") OffsetDateTime createdAt, @Param("id")Long id, Pageable pageable);
+
+    @Query("SELECT h FROM HelpRequest h WHERE h.title LIKE %:keyword% OR h.description LIKE %:keyword% ORDER BY h.createdAt DESC")
+    Page<HelpRequest> findByKeyword(@Param("keyword") String keyword, Pageable pageable);
 }
+

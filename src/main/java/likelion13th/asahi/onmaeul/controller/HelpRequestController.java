@@ -28,12 +28,22 @@ public class HelpRequestController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<? extends HomePayload>> getMain(@RequestParam(defaultValue = "5") int limitFeed,
-                                                                      @RequestParam(required = false) String nextCursor, @AuthenticationPrincipal User user ){
+                                                                      @RequestParam(value="cursor",required = false) String nextCursor, @AuthenticationPrincipal User user ){
 
         ApiResponse<HelpRequestPayload> payload=helpRequestService.findMain(nextCursor,HelpRequestStatus.PENDING,user.getRole(),limitFeed);
 
         return ResponseEntity.ok(payload);
 
+    }
+
+    //요청 리스트 검색 기능
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<HelpRequestPayload>> searchHelpRequests(@RequestParam("keyword") String keyword,
+                                                                              @RequestParam(defaultValue="5")int size,
+                                                                              @RequestParam(defaultValue = "0")int page,
+                                                                              @AuthenticationPrincipal User user){
+        ApiResponse<HelpRequestPayload> payload=helpRequestService.search(keyword,user.getRole(),page,size);
+        return ResponseEntity.ok(payload);
     }
 
     //요청글 상세보기
