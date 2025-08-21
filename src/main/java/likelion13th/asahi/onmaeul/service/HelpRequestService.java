@@ -1,4 +1,5 @@
 package likelion13th.asahi.onmaeul.service;
+import likelion13th.asahi.onmaeul.domain.HelpRequest;
 
 import jakarta.transaction.Transactional;
 import likelion13th.asahi.onmaeul.dto.request.UpdateRequest;
@@ -49,7 +50,8 @@ public class HelpRequestService {
             /*5개의 글이 나올 시 다음이 더 있다고 반환
             5개가 안되는 경우 마지막 페이지
              */
-            var last = helpRequests.get(helpRequests.size() - 1); //helpRequestItem 속 마지막 helpRequest 가져오기
+
+var last = helpRequests.get(helpRequests.size() - 1); //helpRequestItem 속 마지막 helpRequest 가져오기
             newCursor = CursorUtil.encode(last.getCreatedAt(), last.getId());
             hasMore = true;
             //newCursor이 null이 아니고 hasMore이 true여야만 무한 스크롤 제공
