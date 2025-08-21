@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class GuestHomePayload implements HomePayload {
+    //guest 홈 접근용 dto
     private String role;
     private HomeAction guestAction;
 }

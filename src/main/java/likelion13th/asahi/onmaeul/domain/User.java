@@ -6,6 +6,8 @@ import lombok.*;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@Builder
+@AllArgsConstructor
 @Table(name = "Users") // user는 PostgreSQL에서 예약어라서, 테이블명으로 쓰면 종종 SQL 문법 에러: Users로 바꿈
 public class User {
     @Id
@@ -35,6 +37,10 @@ public class User {
     /* 매칭 카드에 노출되는 한 줄 소개 */
     @Column(name = "introduce", length = 100)
     private String introduce;
+
+    @Column(name="birth")
+    private String birth;
+
 
     /* 사용자 역할 */
     @Enumerated(EnumType.STRING) // enum -> 문자열로 저장!

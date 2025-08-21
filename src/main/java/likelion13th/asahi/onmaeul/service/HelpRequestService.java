@@ -1,25 +1,26 @@
 package likelion13th.asahi.onmaeul.service;
 
 import jakarta.transaction.Transactional;
-import likelion13th.asahi.onmaeul.DTO.response.ApiResponse;
-import likelion13th.asahi.onmaeul.DTO.response.helpRequest.*;
+import likelion13th.asahi.onmaeul.dto.request.UpdateRequest;
+import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
+import likelion13th.asahi.onmaeul.dto.response.helpRequest.*;
 import likelion13th.asahi.onmaeul.domain.HelpRequest;
 import likelion13th.asahi.onmaeul.domain.HelpRequestStatus;
 import likelion13th.asahi.onmaeul.domain.User;
 import likelion13th.asahi.onmaeul.domain.UserRole;
 import likelion13th.asahi.onmaeul.repository.HelpRequestRepository;
 import likelion13th.asahi.onmaeul.util.CursorUtil;
-import likelion13th.asahi.onmaeul.DTO.response.helpRequest.HelpRequestArticlePayload;
+import likelion13th.asahi.onmaeul.dto.response.helpRequest.HelpRequestArticlePayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.awt.print.Pageable;
+import org.springframework.data.domain.Pageable;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
 
-import static likelion13th.asahi.onmaeul.DTO.response.ApiResponse.ok;
+import static likelion13th.asahi.onmaeul.dto.response.ApiResponse.ok;
 
 
 @RequiredArgsConstructor
@@ -142,6 +143,8 @@ public class HelpRequestService {
     public ApiResponse<DeletePayload> deleteArticle(long id, User user){
         HelpRequest helpRequest = helpRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("not found: " + id));
+        authorizeArticleAuthor(helpRequest);
+
         helpRequestRepository.delete(helpRequest);
 
         DeletePayload deletePayload =DeletePayload.builder()
@@ -155,23 +158,29 @@ public class HelpRequestService {
     }
 
     @Transactional
-    public ApiResponse<UpdatePayload> patch(long id,User user){
+    public ApiResponse<UpdatePayload> patch(long id, User user, UpdateRequest updateRequest){
         HelpRequest helpRequest=helpRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("not found: " + id));
-        helpRequest.update(Optional.ofNullable(helpRequest.getTitle()),Optional.ofNullable(helpRequest.getDescription()),
-                Optional.ofNullable(helpRequest.getLocation()),Optional.ofNullable(helpRequest.getLocationDetail()),
-                Optional.ofNullable(helpRequest.getCategory()),Optional.ofNullable(helpRequest.getImages()));
+        authorizeArticleAuthor(helpRequest);
 
-        UpdatePayload deletePayload =UpdatePayload.builder()
+        helpRequest.update(updateRequest);
+
+        UpdatePayload updatePayload =UpdatePayload.builder()
                 .requestId(id)
                 .status(HelpRequestStatus.PENDING.toString())
                 .updatedAt(OffsetDateTime.now())
                 .route("/help-requests")
                 .build();
 
-        return ok("요청글이 수정되었습니다.",deletePayload);
+        return ok("요청글이 수정되었습니다.", updatePayload);
     }
 
-
+    //게시글을 작성한 유저인지 확인
+    private static void authorizeArticleAuthor(HelpRequest helpRequest){
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!helpRequest.getRequester().getUsername().equals(userName)){
+            throw new IllegalArgumentException("not authorized");
+        }
     }
+}
 

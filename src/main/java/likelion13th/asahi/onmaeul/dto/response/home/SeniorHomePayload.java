@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class SeniorHomePayload implements HomePayload {
+    //senior 전용 home dto
     private String role;
     private List<HomeAction> homeActions;
 }

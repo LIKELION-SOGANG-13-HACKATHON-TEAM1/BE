@@ -1,6 +1,6 @@
 package likelion13th.asahi.onmaeul.controller;
 
-import likelion13th.asahi.onmaeul.auth.CustomUserDetails;
+import likelion13th.asahi.onmaeul.config.auth.CustomUserDetails;
 import likelion13th.asahi.onmaeul.dto.response.EditMyPageResponse;
 import likelion13th.asahi.onmaeul.dto.response.MyPageResponse;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
