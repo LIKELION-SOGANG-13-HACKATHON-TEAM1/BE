@@ -18,5 +18,5 @@ public interface ClassParticipantRepository extends JpaRepository<ClassParticipa
           AND (:status IS NULL OR cp.status = :status)
         ORDER BY cp.matchedAt DESC
         """)
-    List<ClassParticipant> findByUserIdAndStatus(@Param("userId") Long userId, @Param("status") String status);
+List<ClassParticipant> findByUserIdAndStatus(@Param("userId") Long userId, @Param("status") String status);
 }
