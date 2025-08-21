@@ -2,7 +2,7 @@ package likelion13th.asahi.onmaeul.controller;
 
 import likelion13th.asahi.onmaeul.dto.request.AddUserRequest;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
-import likelion13th.asahi.onmaeul.dto.response.UserService;
+import likelion13th.asahi.onmaeul.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
