@@ -95,7 +95,7 @@ var last = helpRequests.get(helpRequests.size() - 1); //helpRequestItem 속 마�
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
         //Repository에서 키워드로 데이터 조회
-        Page<HelpRequest> helpRequestPage = helpRequestRepository.findByKeyword(keyword, pageable);
+        Page<HelpRequest> helpRequestPage = helpRequestRepository.findByKeywordAndStatus(keyword, HelpRequestStatus.PENDING, pageable);
         List<HelpRequest> helpRequests = helpRequestPage.getContent();
 
         List<HelpRequestItem>items=helpRequests.stream()

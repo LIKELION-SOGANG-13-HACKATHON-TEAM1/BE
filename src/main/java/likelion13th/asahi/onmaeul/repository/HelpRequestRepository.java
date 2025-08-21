@@ -28,7 +28,7 @@ public interface HelpRequestRepository extends JpaRepository<HelpRequest, Long> 
 """)
     List<HelpRequest>findNextPageByStatus(@Param("status")HelpRequestStatus status, @Param("createdAt") OffsetDateTime createdAt, @Param("id")Long id, Pageable pageable);
 
-    @Query("SELECT h FROM HelpRequest h WHERE h.title LIKE %:keyword% OR h.description LIKE %:keyword% ORDER BY h.createdAt DESC")
-    Page<HelpRequest> findByKeyword(@Param("keyword") String keyword, Pageable pageable);
+    @Query("SELECT h FROM HelpRequest h WHERE h.status = :status AND (h.title LIKE %:keyword% OR h.description LIKE %:keyword%) ORDER BY h.createdAt DESC")
+    Page<HelpRequest> findByKeywordAndStatus(@Param("keyword") String keyword,@Param("status") HelpRequestStatus status, Pageable pageable);
 }
 
