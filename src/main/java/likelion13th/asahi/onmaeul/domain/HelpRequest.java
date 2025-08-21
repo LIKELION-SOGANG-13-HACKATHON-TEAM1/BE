@@ -44,6 +44,9 @@ public class HelpRequest {
     @Column(name = "request_time")
     private java.time.OffsetDateTime requestTime;
 
+    @Column(name = "estimated_minutes")
+    private Integer estimatedMinutes;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private java.time.OffsetDateTime createdAt;
 
@@ -82,6 +85,11 @@ public class HelpRequest {
             this.images.clear();
             this.images.addAll(updateRequest.getImages());
         }
+    }
+
+    // Setter 쓰지 않고 Status 변경용으로 함수 하나 만들었음
+    public void setStatus(HelpRequestStatus newStatus) {
+        this.status = newStatus;
     }
 
 }

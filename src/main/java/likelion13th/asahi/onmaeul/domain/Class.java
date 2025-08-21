@@ -22,6 +22,11 @@ public class Class {
     @Column(name = "host_id", nullable = false)
     private Long hostId;
 
+    // 이 매핑을 추가해야만 JPA가 hostId를 기반으로 User 엔티티 객체를 정상적으로 가져올 수 있다!
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "host_id", insertable = false, updatable = false)
+    private User host;
+
     @Column(nullable = false, length = 100)
     private String title;
 

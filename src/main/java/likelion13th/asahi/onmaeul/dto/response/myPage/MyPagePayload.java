@@ -1,7 +1,5 @@
-package likelion13th.asahi.onmaeul.dto.response;
+package likelion13th.asahi.onmaeul.dto.response.myPage;
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MyPageResponse {
+public class MyPagePayload {
     private Long user_id;
     private String user_phonenumber;
     private String user_introduce;

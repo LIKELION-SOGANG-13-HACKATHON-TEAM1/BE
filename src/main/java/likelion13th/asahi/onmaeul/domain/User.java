@@ -3,6 +3,8 @@ package likelion13th.asahi.onmaeul.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -25,6 +27,10 @@ public class User {
     /* 비밀번호 해시 (원문 저장 금지, 예: BCrypt) */
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
+
+    /* 생년월일 */
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
 
     /* 프로필 이미지 URL */
     @Column(name = "profile_url", length = 255)

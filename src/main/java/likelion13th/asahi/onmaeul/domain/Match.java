@@ -6,6 +6,8 @@ import java.time.OffsetDateTime;
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE) 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "match")
 public class Match {
@@ -23,6 +25,10 @@ public class Match {
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "helprequest_id", nullable = false, unique = true)
     private HelpRequest helpRequest;
+
+    // Match에 대한 Review를 참조하는 필드 추가
+    @OneToOne(mappedBy = "match", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Review review;
 
     /* 상태 */
     @Enumerated(EnumType.STRING)
