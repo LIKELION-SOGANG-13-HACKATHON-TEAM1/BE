@@ -3,7 +3,7 @@ package likelion13th.asahi.onmaeul.controller;
 import likelion13th.asahi.onmaeul.domain.User;
 import likelion13th.asahi.onmaeul.dto.request.DraftRequest;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
-import likelion13th.asahi.onmaeul.dto.response.DraftResponsePayload;
+import likelion13th.asahi.onmaeul.dto.response.chat.DraftResponsePayload;
 import likelion13th.asahi.onmaeul.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

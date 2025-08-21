@@ -1,4 +1,4 @@
-package likelion13th.asahi.onmaeul.dto.response;
+package likelion13th.asahi.onmaeul.dto.response.chat;
 
 import lombok.Data;
 

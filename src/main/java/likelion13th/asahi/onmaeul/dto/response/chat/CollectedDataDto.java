@@ -1,4 +1,4 @@
-package likelion13th.asahi.onmaeul.dto.response;
+package likelion13th.asahi.onmaeul.dto.response.chat;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -23,6 +23,6 @@ public class CollectedDataDto {
     private List<String> images;
 
     @JsonProperty("category_id")
-    private Integer categoryId;
+    private Long categoryId;
 
 }

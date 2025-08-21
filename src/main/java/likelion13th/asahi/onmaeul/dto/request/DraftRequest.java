@@ -23,6 +23,6 @@ public class DraftRequest {
     private List<String> images;
 
     @JsonProperty("category_id")
-    private Integer categoryId;
+    private Long categoryId;
 
 }

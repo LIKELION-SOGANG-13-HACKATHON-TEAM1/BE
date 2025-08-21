@@ -6,8 +6,11 @@ import lombok.*;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "help_request")
+@Builder
+@AllArgsConstructor
 public class HelpRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

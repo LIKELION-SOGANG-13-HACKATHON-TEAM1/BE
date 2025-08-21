@@ -11,7 +11,7 @@ public class ChatDraft {
     //Redis에 저장될 임시 객체(dto라 생각해도 별 문제 없을 듯)
     private String sessionId;
     @JsonProperty("category_id")
-    private Integer categoryId;
+    private Long categoryId;
     private String title;
     private String description;
     private String location;
