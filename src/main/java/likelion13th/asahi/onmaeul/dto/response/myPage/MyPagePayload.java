@@ -14,4 +14,6 @@ public class MyPagePayload {
     private String user_phonenumber;
     private String user_introduce;
     private String user_name;
+
+    // 유저 프로필 넣어야함
 }

@@ -1,4 +1,8 @@
 spring:
+  data:
+    redis:
+      host: localhost  # Redis 서버 주소 (로컬에 설치했다면 localhost)
+      port: 6379       # Redis 서버 기본 포트
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -35,4 +39,10 @@ home:
 
 openai:
   api:
-    key: ${OPENAI_API_KEY}
+    # Mindlogic AI의 API 엔드포인트 URL
+    # OpenAI와 동일한 형식으로 작동하므로 그대로 사용
+    url: https://api.mindlogic.ai/v1/chat/completions
+    # Mindlogic AI에서 발급받은 API Key
+    key: st3CIYYMye4506IiyBuBCiHldYH0MK3P
+    # 사용할 챗봇 모델 이름
+    model: gpt-3.5-turbo-16k
