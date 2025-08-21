@@ -2,14 +2,12 @@ package likelion13th.asahi.onmaeul.service;
 
 import likelion13th.asahi.onmaeul.domain.*;
 import likelion13th.asahi.onmaeul.dto.response.myPage.*;
-import likelion13th.asahi.onmaeul.repository.ClassParticipantRepository;
-import likelion13th.asahi.onmaeul.repository.MatchRepository;
-import likelion13th.asahi.onmaeul.repository.ReviewRepository;
-import likelion13th.asahi.onmaeul.repository.UserRepository;
+import likelion13th.asahi.onmaeul.repository.*;
 import lombok.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.Class;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -25,6 +23,7 @@ public class MyPageService {
     private final MatchRepository matchRepository;
     private final ReviewRepository reviewRepository;
     private final ClassParticipantRepository classParticipantRepository;
+    private final ClassRepository classRepository;
 
     public MyPagePayload getMyPageById(Long userId) {
         // DB에서 User 조회
@@ -282,6 +281,43 @@ public class MyPageService {
                 .collect(Collectors.toList());
 
         // 3. PagingInfo 구성 (전체 조회)
+        PagingInfo paging = PagingInfo.builder()
+                .all(true)
+                .count(items.size())
+                .has_next(false)
+                .next_cursor(null)
+                .build();
+
+        // 4. 최종 Payload 반환
+        return ClassListPayload.builder()
+                .filter_status(status)
+                .class_list(items)
+                .paging(paging)
+                .build();
+    }
+
+    /** 개설한 수업 목록 보기 (강사용): 필터링 기능 포함 */
+    @Transactional(readOnly = true)
+    public ClassListPayload getOpenedClasses(Long userId, String status) {
+
+        // 1. Repository에서 데이터 조회 (hostId는 userId와 동일)
+        List<Class> classes = classRepository.findAllByHostIdAndStatus(userId, status);
+
+        // 2. DTO 매핑
+        var items = classes.stream()
+                .map(c -> likelion13th.asahi.onmaeul.domain.Class.class.cast(c)) // class 이름 중복 이슈..
+                .map(c -> ClassItemPayload.builder()
+                        .id(c.getId())
+                        .title(c.getTitle())
+                        .host_id(c.getHostId())
+                        .host_name(c.getHost().getUsername())
+                        .schedule(toIso(c.getSchedule()))
+                        .status(c.getStatus().name())
+                        .description(c.getDescription())
+                        .build())
+                .collect(Collectors.toList());
+
+        // 3. PagingInfo 구성
         PagingInfo paging = PagingInfo.builder()
                 .all(true)
                 .count(items.size())
