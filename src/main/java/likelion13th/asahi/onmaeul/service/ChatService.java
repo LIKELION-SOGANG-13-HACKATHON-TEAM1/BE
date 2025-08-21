@@ -185,7 +185,7 @@ public class ChatService {
             String response = openAiService.createChatCompletion(request)
                     .getChoices().get(0).getMessage().getContent();
 
-            // 4. 응답 Integer로 변환
+            // 응답 Integer로 변환
             return Integer.parseInt(response.trim());
 
         } catch (Exception e) {
