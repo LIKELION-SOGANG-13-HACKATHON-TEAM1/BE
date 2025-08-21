@@ -6,6 +6,8 @@ import java.time.OffsetDateTime;
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE) 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "match")
 public class Match {

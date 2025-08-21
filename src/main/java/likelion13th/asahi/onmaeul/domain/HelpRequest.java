@@ -79,5 +79,10 @@ public class HelpRequest {
         });
     }
 
+    // Setter 쓰지 않고 Status 변경용으로 함수 하나 만들었음
+    public void setStatus(HelpRequestStatus newStatus) {
+        this.status = newStatus;
+    }
+
 }
 
