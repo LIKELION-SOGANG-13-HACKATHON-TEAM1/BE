@@ -1,8 +1,6 @@
 package likelion13th.asahi.onmaeul.controller;
 
 import likelion13th.asahi.onmaeul.dto.request.ChatRequest;
-import likelion13th.asahi.onmaeul.dto.response.ChatResponse;
-import likelion13th.asahi.onmaeul.service.OpenAIChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

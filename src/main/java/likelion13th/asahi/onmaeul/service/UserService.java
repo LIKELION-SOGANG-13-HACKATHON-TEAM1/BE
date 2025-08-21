@@ -1,4 +1,4 @@
-package likelion13th.asahi.onmaeul.dto.response;
+package likelion13th.asahi.onmaeul.service;
 
 import likelion13th.asahi.onmaeul.domain.UserRole;
 import likelion13th.asahi.onmaeul.dto.request.AddUserRequest;
@@ -7,8 +7,6 @@ import lombok.RequiredArgsConstructor;
 import likelion13th.asahi.onmaeul.domain.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
