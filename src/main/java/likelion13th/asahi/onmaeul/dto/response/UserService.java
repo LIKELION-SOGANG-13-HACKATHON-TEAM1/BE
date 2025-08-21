@@ -26,6 +26,7 @@ public class UserService {
                     .profileUrl(dto.getProfileUrl())
                     .passwordHash(bCryptPasswordEncoder.encode(dto.getPassword()))
                     .introduce(introduceToSave)
+                    .birth(dto.getBirth())
                     .role(dto.getUserRole()).build()).getId();
     }
 

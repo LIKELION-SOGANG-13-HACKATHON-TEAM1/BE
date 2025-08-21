@@ -38,6 +38,7 @@ public class User {
     @Column(name = "introduce", length = 100)
     private String introduce;
 
+    @Column(name="birth")
     private String birth;
 
 
