@@ -1,7 +1,7 @@
 package likelion13th.asahi.onmaeul.controller;
 
-import likelion13th.asahi.onmaeul.auth.CustomUserDetails;
 import likelion13th.asahi.onmaeul.dto.response.myPage.*;
+import likelion13th.asahi.onmaeul.config.auth.CustomUserDetails;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
 import likelion13th.asahi.onmaeul.service.MyPageService;
 import lombok.RequiredArgsConstructor;

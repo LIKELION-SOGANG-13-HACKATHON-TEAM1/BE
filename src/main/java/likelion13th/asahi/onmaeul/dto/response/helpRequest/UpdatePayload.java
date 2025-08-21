@@ -11,6 +11,7 @@ import java.time.OffsetDateTime;
 @Builder
 @AllArgsConstructor
 public class UpdatePayload {
+    //상세 요청 페이지 수정용 dto
     @JsonProperty("request_id")
     private final Long requestId;
 

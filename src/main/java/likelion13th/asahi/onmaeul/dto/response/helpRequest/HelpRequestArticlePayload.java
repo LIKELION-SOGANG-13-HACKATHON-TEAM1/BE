@@ -11,6 +11,7 @@ import java.util.List;
 @Data
 @Builder
 public class HelpRequestArticlePayload {
+    //상세 요청글용 dto
 
     @JsonProperty("request_id")
     private Long requestId;

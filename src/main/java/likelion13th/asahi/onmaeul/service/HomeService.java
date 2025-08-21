@@ -31,7 +31,7 @@ public class HomeService {
                     .route("/request/chat")
                     .action("navigate").build();
 
-        //도움 요청 목록
+        //도움 요청 목록wjr
             HomeAction action2 = HomeAction.builder()
                     .title("도움 요청 목록")
                     .subtitle("이런 도움이 필요해요")
@@ -51,7 +51,7 @@ public class HomeService {
 
         //청년용 main 화면
         else{
-            String listEndPoint="/help-requests?status=pending&limit=5";
+            String listEndPoint="/helpRequests?status=pending&limit=5";
             JuniorHomePayload payload=JuniorHomePayload.builder()
                     .role("junior")
                     .listEndpoint(listEndPoint)

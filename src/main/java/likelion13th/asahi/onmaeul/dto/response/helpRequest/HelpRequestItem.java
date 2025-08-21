@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class HelpRequestItem {
+    //요청 메인 화면용 dto
 
     @JsonProperty("request_id")
     private Long requestId;

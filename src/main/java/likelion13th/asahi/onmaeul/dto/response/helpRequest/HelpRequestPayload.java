@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class HelpRequestPayload implements HomePayload {
+    //요청 main 화면용 dto
     List<HelpRequestItem> items;
     @JsonProperty("next_cursor")
     String nextCursor;
