@@ -18,6 +18,11 @@ spring:
     init:
       mode: always  # schema.sql / data.sql ?? ??
 
+  data:
+    redis:
+      host: localhost  # Redis 서버 주소 (로컬에 설치했다면 localhost)
+      port: 6379       # Redis 서버 기본 포트
+
 debug: true
 logging:
   level:
@@ -36,3 +41,4 @@ home:
 openai:
   api:
     key: ${OPENAI_API_KEY}
+
