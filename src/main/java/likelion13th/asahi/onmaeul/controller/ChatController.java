@@ -31,4 +31,5 @@ public class ChatController {
         ApiResponse<FinalChatResponsePayload> payload=chatService.createArticle(finalChatRequest,user);
         return ResponseEntity.ok(payload);
     }
+
 }
