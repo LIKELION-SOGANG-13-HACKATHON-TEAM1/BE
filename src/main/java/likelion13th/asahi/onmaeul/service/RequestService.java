@@ -2,13 +2,16 @@ package likelion13th.asahi.onmaeul.service;
 
 import likelion13th.asahi.onmaeul.domain.HelpRequest;
 import likelion13th.asahi.onmaeul.domain.User;
-import likelion13th.asahi.onmaeul.dto.response.request.RequestStatusPayload;
+import likelion13th.asahi.onmaeul.dto.response.requestTab.JuniorInfo;
+import likelion13th.asahi.onmaeul.dto.response.requestTab.RequestStatusPayload;
+import likelion13th.asahi.onmaeul.dto.response.requestTab.SeniorInfo;
 import likelion13th.asahi.onmaeul.repository.HelpRequestRepository;
 import likelion13th.asahi.onmaeul.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

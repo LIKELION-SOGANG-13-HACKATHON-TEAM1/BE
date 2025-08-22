@@ -1,7 +1,7 @@
 package likelion13th.asahi.onmaeul.controller;
 
 import likelion13th.asahi.onmaeul.config.auth.CustomUserDetails;
-import likelion13th.asahi.onmaeul.dto.response.request.RequestStatusPayload;
+import likelion13th.asahi.onmaeul.dto.response.requestTab.RequestStatusPayload;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
 import likelion13th.asahi.onmaeul.service.RequestService;
 import lombok.RequiredArgsConstructor;
