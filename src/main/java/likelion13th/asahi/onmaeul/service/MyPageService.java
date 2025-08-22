@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import likelion13th.asahi.onmaeul.dto.response.myPage.*;
 
-import java.lang.Class;
+import likelion13th.asahi.onmaeul.domain.Class;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
