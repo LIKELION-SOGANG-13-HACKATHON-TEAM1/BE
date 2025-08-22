@@ -13,8 +13,9 @@ public class JuniorInfo {
 
     public static JuniorInfo from(User user) {
         return JuniorInfo.builder()
-                .name(user.getName())
+                .name(user.getUsername())
                 .phoneNumber(user.getPhoneNumber())
-                .profileImageUrl(user.getProfileImageUrl())
+                .profileImageUrl(user.getProfileUrl())
                 .build();
     }
+}

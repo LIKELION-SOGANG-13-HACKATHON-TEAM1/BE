@@ -1,5 +1,7 @@
 package likelion13th.asahi.onmaeul.repository;
 
+import likelion13th.asahi.onmaeul.domain.HelpRequest;
+import likelion13th.asahi.onmaeul.domain.HelpRequestStatus;
 import likelion13th.asahi.onmaeul.domain.Match;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -62,4 +64,16 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
             @Param("matchId") Long matchId,
             @Param("juniorId") Long juniorId
     );
+
+    /**
+     * 특정 청년 ID와 요청 상태를 기준으로 매칭된 요청을 조회합니다.
+     * @param responserId 청년(도움 제공자)의 ID
+     * @param status   조회할 도움 요청의 상태 (예: ACCEPTED, IN_PROGRESS)
+     * @return 해당 조건에 맞는 Match 리스트
+     */
+    @Query("SELECT m FROM Match m WHERE m.responser.id = :responserId AND m.helpRequest.status IN :status")
+    List<Match> findByResponserAndHelpRequestStatus(Long responserId, List<HelpRequestStatus> status);
+
+    List<Match> findByHelpRequestIn(List<HelpRequest> helpRequests);
+
 }

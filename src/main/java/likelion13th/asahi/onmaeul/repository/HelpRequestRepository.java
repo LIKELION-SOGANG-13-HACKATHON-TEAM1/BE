@@ -26,4 +26,6 @@ public interface HelpRequestRepository extends JpaRepository<HelpRequest, Long> 
     ORDER BY h.createdAt DESC, h.id DESC
 """)
     List<HelpRequest>findNextPageByStatus(@Param("status")HelpRequestStatus status, @Param("createdAt") OffsetDateTime createdAt, @Param("id")Long id, Pageable pageable);
+
+    List<HelpRequest> findByRequesterId(Long requesterId);
 }
