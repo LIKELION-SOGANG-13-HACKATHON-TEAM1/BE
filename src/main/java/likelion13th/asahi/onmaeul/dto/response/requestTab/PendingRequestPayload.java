@@ -1,4 +1,4 @@
-package likelion13th.asahi.onmaeul.dto.response.request;
+package likelion13th.asahi.onmaeul.dto.response.requestTab;
 
 import lombok.Builder;
 import lombok.Getter;

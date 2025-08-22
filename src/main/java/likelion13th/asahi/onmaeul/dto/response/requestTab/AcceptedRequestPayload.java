@@ -1,4 +1,4 @@
-package likelion13th.asahi.onmaeul.dto.response.request;
+package likelion13th.asahi.onmaeul.dto.response.requestTab;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -13,4 +13,5 @@ public class AcceptedRequestPayload { // '수락 완료' 상태의 요청 정보
     private String status; // accepted
     private ActionsDto actions;
     private JuniorInfo juniorInfo;
+    private SeniorInfo seniorInfo;
 }

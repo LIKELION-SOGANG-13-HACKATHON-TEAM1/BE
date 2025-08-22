@@ -1,4 +1,4 @@
-package likelion13th.asahi.onmaeul.dto.response.request;
+package likelion13th.asahi.onmaeul.dto.response.requestTab;
 
 import likelion13th.asahi.onmaeul.domain.User;
 import lombok.Builder;
@@ -13,8 +13,9 @@ public class JuniorInfo {
 
     public static JuniorInfo from(User user) {
         return JuniorInfo.builder()
-                .name(user.getName())
+                .name(user.getUsername())
                 .phoneNumber(user.getPhoneNumber())
-                .profileImageUrl(user.getProfileImageUrl())
+                .profileImageUrl(user.getProfileUrl())
                 .build();
     }
+}
