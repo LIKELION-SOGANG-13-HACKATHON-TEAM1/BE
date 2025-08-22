@@ -1,6 +1,7 @@
 package likelion13th.asahi.onmaeul.repository;
 
 import likelion13th.asahi.onmaeul.domain.ClassParticipant;
+import likelion13th.asahi.onmaeul.domain.ClassStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,11 +13,10 @@ public interface ClassParticipantRepository extends JpaRepository<ClassParticipa
     @Query("""
         SELECT cp
         FROM ClassParticipant cp
-        JOIN FETCH cp.classes cls
-        JOIN FETCH cls.host h
+        JOIN FETCH cp.clazz c
+        JOIN FETCH c.host h
         WHERE cp.user.id = :userId
-          AND (:status IS NULL OR cp.status = :status)
-        ORDER BY cp.matchedAt DESC
+          AND c.status = :status
         """)
-List<ClassParticipant> findByUserIdAndStatus(@Param("userId") Long userId, @Param("status") String status);
+    List<ClassParticipant> findByUserIdAndStatus(@Param("userId") Long userId, @Param("status") ClassStatus status); // 파라미터 타입을 ClassStatus로 수정
 }
