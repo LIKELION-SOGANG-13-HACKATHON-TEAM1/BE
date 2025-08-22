@@ -9,8 +9,10 @@ import likelion13th.asahi.onmaeul.dto.response.myPage.PagingInfo;
 import likelion13th.asahi.onmaeul.repository.ClassRepository;
 import likelion13th.asahi.onmaeul.util.CursorUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -72,7 +74,7 @@ public class ClassService {
                     return ClazzItem.builder()
                             .id(e.getId())
                             .title(e.getTitle())
-                            .hostId(e.getHostId())
+                            .hostName(e.getHost().getUsername())
                             .status(e.getStatus().toString())
                             .description(e.getDescription())
                             .build();
@@ -86,4 +88,35 @@ public class ClassService {
 
         return ok("class list 조회 성공 ",clazzPayload);
         }
+
+    public ApiResponse<ClazzPayload> search(String keyword, int page, int size){
+        //pageable 정보
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        //Repository에서 키워드로 데이터 조회(status OPEN만)
+        Page<Class> classPage =classRepository.findByKeywordAndStatus(keyword, ClassStatus.OPEN, pageable);
+        List<Class> classes = classPage.getContent();
+
+        List<ClazzItem> clazzItems= classes.stream()
+                .map(e->{
+                    return ClazzItem.builder()
+                            .id(e.getId())
+                            .title(e.getTitle())
+                            .hostName(e.getHost().getUsername())
+                            .status(e.getStatus().toString())
+                            .description(e.getDescription())
+                            .build();
+                }).toList();
+
+        PagingInfo paging=PagingInfo.builder()
+                .all((nextCursor==null)&&(hasNext ==false))
+                .count(classes.size())
+                .next_cursor(newCursor)
+                .has_next(hasNext)
+                .build();
+
+        ClazzPayload clazzPayload=ClazzPayload.builder()
+                .classes(clazzItems)
+                .paging()
+    }
     }

@@ -10,8 +10,8 @@ public class ClazzItem {
     private Long id;
     private String title;
     private String schedule;
-    @JsonProperty("host_id")
-    private Long hostId;
+    @JsonProperty("host_name")
+    private String hostName;
     private String status;
     private String description;
 }

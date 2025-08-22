@@ -3,6 +3,7 @@ package likelion13th.asahi.onmaeul.repository;
 import likelion13th.asahi.onmaeul.domain.ClassStatus;
 import likelion13th.asahi.onmaeul.domain.HelpRequest;
 import likelion13th.asahi.onmaeul.domain.HelpRequestStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -46,7 +47,10 @@ public interface ClassRepository extends JpaRepository<Class, Long> {
     //status null 후속 페이지
     @Query("SELECT c FROM Class c WHERE c.createdAt < :createdAt OR (c.createdAt = :createdAt AND c.id < :id) ORDER BY c.createdAt DESC, c.id DESC")
     List<Class> findNextPage(@Param("createdAt") OffsetDateTime createdAt, @Param("id") Long id, Pageable pageable);
-}
+
+    //class 검색하기(status OPEN)
+    @Query("SELECT c FROM Class c WHERE c.status = :status AND (c.title LIKE %:keyword% OR c.description LIKE %:keyword%) ORDER BY c.createdAt DESC")
+    Page<Class> findByKeywordAndStatus(@Param("keyword") String keyword, @Param("status") ClassStatus classStatus, Pageable pageable);
 }
 
 

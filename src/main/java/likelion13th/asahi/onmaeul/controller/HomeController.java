@@ -19,7 +19,6 @@ public class HomeController {
     private final HomeService homeService;
     private final GuestHomeProps guestHomeProps;
 
-
     @GetMapping
     public ResponseEntity<ApiResponse<? extends HomePayload>> getHome(@AuthenticationPrincipal User user){
         //guest용
@@ -32,12 +31,9 @@ public class HomeController {
                     .build();
             return ResponseEntity.ok(ApiResponse.ok(guestHomeProps.message(), payload));
         }
-
         ApiResponse<?extends HomePayload> payload=homeService.getHome(user);
         return ResponseEntity.ok(payload);
-
         }
-
     }
 
 
