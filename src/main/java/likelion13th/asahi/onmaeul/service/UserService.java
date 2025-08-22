@@ -8,6 +8,8 @@ import likelion13th.asahi.onmaeul.domain.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -24,7 +26,7 @@ public class UserService {
                     .profileUrl(dto.getProfileUrl())
                     .passwordHash(bCryptPasswordEncoder.encode(dto.getPassword()))
                     .introduce(introduceToSave)
-                    .birth(dto.getBirth())
+                    .birthDate(LocalDate.parse(dto.getBirth()))
                     .role(dto.getUserRole()).build()).getId();
     }
 

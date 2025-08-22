@@ -44,9 +44,6 @@ public class User {
     @Column(name = "introduce", length = 100)
     private String introduce;
 
-    @Column(name="birth")
-    private String birth;
-
 
     /* 사용자 역할 */
     @Enumerated(EnumType.STRING) // enum -> 문자열로 저장!
