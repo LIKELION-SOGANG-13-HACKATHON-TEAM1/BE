@@ -1,10 +1,12 @@
 package likelion13th.asahi.onmaeul.service;
 
 import likelion13th.asahi.onmaeul.domain.*;
+import likelion13th.asahi.onmaeul.dto.request.UpdateRequest;
 import likelion13th.asahi.onmaeul.dto.response.requestTab.*;
 import likelion13th.asahi.onmaeul.repository.HelpRequestRepository;
 import likelion13th.asahi.onmaeul.repository.MatchRepository;
 import likelion13th.asahi.onmaeul.repository.UserRepository;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -194,5 +196,58 @@ public class RequestService {
                 .build();
     }
 
+    @Transactional
+    public void updateHelpRequest(Long userId, Long requestId, UpdateRequest request) {
+        HelpRequest helpRequest = helpRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("요청을 찾을 수 없습니다."));
+
+        validateSeniorAction(userId, helpRequest, HelpRequestStatus.PENDING, "수정");
+
+        // 요청글의 제목, 내용, 이미지를 업데이트
+        helpRequest.update(request);
+        helpRequestRepository.save(helpRequest);
+    }
+
+    @Transactional
+    public void cancelHelpRequest(Long userId, Long requestId) {
+        HelpRequest request = helpRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("요청을 찾을 수 없습니다."));
+
+        validateSeniorAction(userId, request, HelpRequestStatus.PENDING, "취소");
+
+        request.setStatus(HelpRequestStatus.CANCELED);
+        helpRequestRepository.save(request);
+    }
+
+    @Transactional
+    public void startHelpRequest(Long userId, Long requestId) {
+        HelpRequest request = helpRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("요청을 찾을 수 없습니다."));
+
+        validateSeniorAction(userId, request, HelpRequestStatus.MATCHED, "도움 시작");
+
+        request.setStatus(HelpRequestStatus.IN_PROGRESS);
+        helpRequestRepository.save(request);
+    }
+
+    @Transactional
+    public void completeHelpRequest(Long userId, Long requestId) {
+        HelpRequest request = helpRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("요청을 찾을 수 없습니다."));
+
+        validateSeniorAction(userId, request, HelpRequestStatus.IN_PROGRESS, "도움 완료");
+
+        request.setStatus(HelpRequestStatus.COMPLETED_UNREVIEWED);
+        helpRequestRepository.save(request);
+    }
+
+    private void validateSeniorAction(Long userId, HelpRequest request, HelpRequestStatus requiredStatus, String actionName) {
+        if (!request.getRequester().getId().equals(userId)) {
+            throw new IllegalArgumentException(actionName + "할 권한이 없습니다.");
+        }
+        if (!request.getStatus().equals(requiredStatus)) {
+            throw new IllegalArgumentException(actionName + "는 " + requiredStatus + " 상태에서만 가능합니다.");
+        }
+    }
 
 }

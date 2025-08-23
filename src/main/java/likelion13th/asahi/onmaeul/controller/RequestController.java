@@ -1,6 +1,7 @@
 package likelion13th.asahi.onmaeul.controller;
 
 import likelion13th.asahi.onmaeul.config.auth.CustomUserDetails;
+import likelion13th.asahi.onmaeul.dto.request.UpdateRequest;
 import likelion13th.asahi.onmaeul.dto.response.requestTab.RequestDetailPayload;
 import likelion13th.asahi.onmaeul.dto.response.requestTab.RequestStatusPayload;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
@@ -9,10 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -36,9 +34,54 @@ public class RequestController {
     @GetMapping("/{request_id}")
     public ResponseEntity<ApiResponse<RequestDetailPayload>> getRequestDetails(
             @AuthenticationPrincipal CustomUserDetails me,
-            @PathVariable Long requestId
+            @PathVariable("request_id") Long requestId
     ) {
         RequestDetailPayload data = requestService.getRequestDetails(me.getId(), requestId);
         return ResponseEntity.ok(ApiResponse.ok("요청 상세 조회 성공", data));
+    }
+
+    // 요청 수정 API (어르신)
+    @PreAuthorize("hasRole('SENIOR')")
+    @PatchMapping("/{request_id}")
+    public ResponseEntity<ApiResponse<Void>> updateHelpRequest(
+            @AuthenticationPrincipal CustomUserDetails me,
+            @PathVariable("request_id") Long requestId,
+            @RequestBody UpdateRequest request // 만들어둔 거 재사용함!
+    ) {
+        requestService.updateHelpRequest(me.getId(), requestId, request);
+        return ResponseEntity.ok(ApiResponse.ok("요청이 수정되었습니다.", null));
+    }
+
+    // 요청 취소 API (어르신)
+    @PreAuthorize("hasRole('SENIOR')")
+    @DeleteMapping("/{request_id}")
+    public ResponseEntity<ApiResponse<Void>> cancelHelpRequest(
+            @AuthenticationPrincipal CustomUserDetails me,
+            @PathVariable("request_id") Long requestId
+    ) {
+        requestService.cancelHelpRequest(me.getId(), requestId);
+        return ResponseEntity.ok(ApiResponse.ok("요청이 취소되었습니다.", null));
+    }
+
+    // 도움 시작 API (어르신)
+    @PreAuthorize("hasRole('SENIOR')")
+    @PatchMapping("/{request_id}/start")
+    public ResponseEntity<ApiResponse<Void>> startHelpRequest(
+            @AuthenticationPrincipal CustomUserDetails me,
+            @PathVariable("request_id") Long requestId
+    ) {
+        requestService.startHelpRequest(me.getId(), requestId);
+        return ResponseEntity.ok(ApiResponse.ok("도움이 시작되었습니다.", null));
+    }
+
+    // 도움 완료 API (어르신)
+    @PreAuthorize("hasRole('SENIOR')")
+    @PatchMapping("/{request_id}/complete")
+    public ResponseEntity<ApiResponse<Void>> completeHelpRequest(
+            @AuthenticationPrincipal CustomUserDetails me,
+            @PathVariable("request_id") Long requestId
+    ) {
+        requestService.completeHelpRequest(me.getId(), requestId);
+        return ResponseEntity.ok(ApiResponse.ok("도움이 완료되었습니다.", null));
     }
 }
