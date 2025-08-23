@@ -1,6 +1,11 @@
 package likelion13th.asahi.onmaeul.config.auth;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -9,6 +14,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,10 +25,13 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@EnableConfigurationProperties(CorsProperties.class)
+@EnableMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
     private final UserDetailsService userDetailsService;
 
@@ -51,26 +60,33 @@ public class WebSecurityConfig {
     }
 
     // ✅ 1. CORS 설정 추가
-    /*@Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource(CorsProperties props) {
         CorsConfiguration configuration = new CorsConfiguration();
-        // 프론트엔드 서버 주소 허용 (예: http://localhost:3000)
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+        List<String> origins = props.getAllowedOrigins(); // ✅ YAML 리스트가 여기로 바인딩
+        configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true); // 쿠키 등 자격 증명 허용
+        configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }*/
+    }
 
     //Http 요청에 대한 보안 구성
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // ✅ 2. CORS 설정 적용
+                .cors(Customizer.withDefaults())
+                // ✅ 3. HTTP 기본 인증 비활성화
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .securityContext(sc -> sc.requireExplicitSave(false))
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/home ","/signup", "/login", "/public/**","/css/**","/js/**","/images/**","/favicon.ico","/error").permitAll()
+                        .requestMatchers("/request/{request_id}/**").hasAuthority("SENIOR")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(e -> e
