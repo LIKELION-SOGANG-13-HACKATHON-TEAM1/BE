@@ -93,7 +93,7 @@ public class WebSecurityConfig {
                         .authenticationEntryPoint((request, response, authException) -> response.setStatus(401))
                 )
                 .formLogin(form -> form
-                        .usernameParameter("phoneNumber")
+                        .usernameParameter("phone_number")
                         .passwordParameter("password")
                         .successHandler((req,res,auth)->{
                             res.setStatus(200);

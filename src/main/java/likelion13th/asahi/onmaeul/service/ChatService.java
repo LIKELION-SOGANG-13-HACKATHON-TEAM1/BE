@@ -7,6 +7,7 @@ import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
 import com.theokanning.openai.service.OpenAiService;
 import jakarta.transaction.Transactional;
+import likelion13th.asahi.onmaeul.config.auth.CustomUserDetails;
 import likelion13th.asahi.onmaeul.domain.Category;
 import likelion13th.asahi.onmaeul.domain.HelpRequest;
 import likelion13th.asahi.onmaeul.domain.HelpRequestStatus;
@@ -23,9 +24,11 @@ import likelion13th.asahi.onmaeul.dto.response.chat.DraftResponsePayload;
 import likelion13th.asahi.onmaeul.dto.response.chat.FinalChatResponsePayload;
 import likelion13th.asahi.onmaeul.repository.CategoryRepository;
 import likelion13th.asahi.onmaeul.repository.HelpRequestRepository;
+import likelion13th.asahi.onmaeul.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -49,6 +52,7 @@ public class ChatService {
     // ===== 도움요청 저장 관련 의존성 =====
     private final HelpRequestRepository helpRequestRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
     @Value("${openai.api.model}")
     private String modelName;
@@ -328,8 +332,10 @@ public class ChatService {
     }
 
     @Transactional
-    public ApiResponse<FinalChatResponsePayload> createArticle(FinalChatRequest finalChatRequest, User user) {
+    public ApiResponse<FinalChatResponsePayload> createArticle(FinalChatRequest finalChatRequest, CustomUserDetails userDetails) {
         String sessionId = finalChatRequest.getSessionId();
+        User user=userRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다"));
 
         ChatDraft draft = (ChatDraft) redisTemplate.opsForValue().get(sessionId);
 
@@ -354,11 +360,11 @@ public class ChatService {
 
         redisTemplate.delete(sessionId);
 
-        FinalChatResponsePayload payload = createFinalChatResponsePayload(draft, user);
+        FinalChatResponsePayload payload = createFinalChatResponsePayload(draft, userDetails);
         return ok("도움 요청이 성공적으로 등록되었습니다.", payload);
     }
 
-    public FinalChatResponsePayload createFinalChatResponsePayload(ChatDraft chatDraft, User user) {
+    public FinalChatResponsePayload createFinalChatResponsePayload(ChatDraft chatDraft,CustomUserDetails user) {
         return FinalChatResponsePayload.builder()
                 .location(chatDraft.getLocation())
                 .requestId(user.getId())

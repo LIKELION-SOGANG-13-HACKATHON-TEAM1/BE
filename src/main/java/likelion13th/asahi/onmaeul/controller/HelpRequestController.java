@@ -1,6 +1,7 @@
 package likelion13th.asahi.onmaeul.controller;
 
 import jakarta.transaction.Transactional;
+import likelion13th.asahi.onmaeul.config.auth.CustomUserDetails;
 import likelion13th.asahi.onmaeul.dto.request.UpdateRequest;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
 import likelion13th.asahi.onmaeul.dto.response.helpRequest.DeletePayload;
@@ -15,6 +16,7 @@ import likelion13th.asahi.onmaeul.domain.HelpRequestStatus;
 import likelion13th.asahi.onmaeul.domain.User;
 import likelion13th.asahi.onmaeul.service.HelpRequestService;
 import lombok.RequiredArgsConstructor;
+import org.apache.catalina.util.CustomObjectInputStream;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +30,7 @@ public class HelpRequestController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<? extends HomePayload>> getMain(@RequestParam(defaultValue = "5") int limitFeed,
-                                                                      @RequestParam(required = false) String nextCursor, @AuthenticationPrincipal User user ){
+                                                                      @RequestParam(required = false) String nextCursor, @AuthenticationPrincipal CustomUserDetails user ){
 
         ApiResponse<HelpRequestPayload> payload=helpRequestService.findMain(nextCursor,HelpRequestStatus.PENDING,user.getRole(),limitFeed);
 
@@ -41,14 +43,14 @@ public class HelpRequestController {
     public ResponseEntity<ApiResponse<HelpRequestPayload>> searchHelpRequests(@RequestParam("keyword") String keyword,
                                                                               @RequestParam(defaultValue="5")int size,
                                                                               @RequestParam(defaultValue = "0")int page,
-                                                                              @AuthenticationPrincipal User user){
+                                                                              @AuthenticationPrincipal CustomUserDetails user){
         ApiResponse<HelpRequestPayload> payload=helpRequestService.search(keyword,user.getRole(),page,size);
         return ResponseEntity.ok(payload);
     }
 
     //요청글 상세보기
     @GetMapping("/{request_id}")
-    public ResponseEntity<ApiResponse<HelpRequestArticlePayload>> getArticle(@PathVariable("request_id")Long id,@AuthenticationPrincipal User user){
+    public ResponseEntity<ApiResponse<HelpRequestArticlePayload>> getArticle(@PathVariable("request_id")Long id,@AuthenticationPrincipal CustomUserDetails user){
 
         ApiResponse<HelpRequestArticlePayload> payload=helpRequestService.findArticle(id,user);
         return ResponseEntity.ok(payload);
@@ -56,14 +58,14 @@ public class HelpRequestController {
 
     //요청글 삭제하기
     @DeleteMapping("/{request_id}")
-    public ResponseEntity<ApiResponse<DeletePayload>> deleteArticle(@PathVariable("request_id")Long id,@AuthenticationPrincipal User user){
+    public ResponseEntity<ApiResponse<DeletePayload>> deleteArticle(@PathVariable("request_id")Long id,@AuthenticationPrincipal CustomUserDetails user){
         ApiResponse< DeletePayload > payload=helpRequestService.deleteArticle(id,user);
         return ResponseEntity.ok(payload);
     }
 
     //요청글 수정하기
     @PatchMapping("/{request_id}")
-    public ResponseEntity<ApiResponse<UpdatePayload>> patchArticle(@PathVariable("request_id")Long id, @AuthenticationPrincipal User user, @RequestBody UpdateRequest updateRequest){
+    public ResponseEntity<ApiResponse<UpdatePayload>> patchArticle(@PathVariable("request_id")Long id, @AuthenticationPrincipal CustomUserDetails user, @RequestBody UpdateRequest updateRequest){
         ApiResponse<UpdatePayload> payload=helpRequestService.patch(id,user,updateRequest);
         return ResponseEntity.ok(payload);
     }

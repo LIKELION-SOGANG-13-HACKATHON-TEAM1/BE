@@ -1,5 +1,6 @@
 package likelion13th.asahi.onmaeul.service;
 
+import likelion13th.asahi.onmaeul.config.auth.CustomUserDetails;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
 import likelion13th.asahi.onmaeul.dto.response.home.HomeAction;
 import likelion13th.asahi.onmaeul.dto.response.home.HomePayload;
@@ -21,7 +22,7 @@ import static likelion13th.asahi.onmaeul.dto.response.ApiResponse.ok;
 public class HomeService {
     private final HelpRequestRepository helpRequestRepository;
 
-    public ApiResponse<? extends HomePayload> getHome(User user) {
+    public ApiResponse<? extends HomePayload> getHome(CustomUserDetails user) {
         //senior
         if (user.getRole() == UserRole.SENIOR) {
             //도움받기 버튼
