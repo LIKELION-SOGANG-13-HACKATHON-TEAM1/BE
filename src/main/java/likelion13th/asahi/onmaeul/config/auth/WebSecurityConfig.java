@@ -51,23 +51,26 @@ public class WebSecurityConfig {
     }
 
     // ✅ 1. CORS 설정 추가
-    /*@Bean
+    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // 프론트엔드 서버 주소 허용 (예: http://localhost:3000)
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true); // 쿠키 등 자격 증명 허용
+        configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }*/
+    }
 
     //Http 요청에 대한 보안 구성
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // ✅ 2. CORS 설정 적용
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // ✅ 3. HTTP 기본 인증 비활성화
+                .httpBasic(AbstractHttpConfigurer::disable)
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/home ","/signup", "/login", "/public/**","/css/**","/js/**","/images/**","/favicon.ico","/error").permitAll()
