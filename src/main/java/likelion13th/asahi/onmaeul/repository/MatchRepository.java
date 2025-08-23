@@ -75,5 +75,5 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     List<Match> findByResponserAndHelpRequestStatus(Long responserId, List<HelpRequestStatus> status);
 
     List<Match> findByHelpRequestIn(List<HelpRequest> helpRequests);
-
+    Optional<Match> findByHelpRequest(HelpRequest helpRequest);
 }
