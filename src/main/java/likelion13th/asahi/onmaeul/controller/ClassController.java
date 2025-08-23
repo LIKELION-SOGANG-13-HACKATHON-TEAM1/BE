@@ -2,16 +2,17 @@ package likelion13th.asahi.onmaeul.controller;
 
 import jakarta.validation.Payload;
 import likelion13th.asahi.onmaeul.domain.ClassStatus;
+import likelion13th.asahi.onmaeul.domain.User;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
+import likelion13th.asahi.onmaeul.dto.response.clazz.ClazzArticlePayload;
+import likelion13th.asahi.onmaeul.dto.response.clazz.ClazzParticipatePayload;
 import likelion13th.asahi.onmaeul.dto.response.clazz.ClazzPayload;
 import likelion13th.asahi.onmaeul.dto.response.helpRequest.HelpRequestPayload;
 import likelion13th.asahi.onmaeul.service.ClassService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -33,6 +34,18 @@ public class ClassController {
                                                                               @RequestParam(defaultValue = "0")int page,
                                                                               @RequestParam ClassStatus status){
         ApiResponse<ClazzPayload> payload=classService.search(keyword,page,size,status);
+        return ResponseEntity.ok(payload);
+    }
+
+    @GetMapping("/{class_id}")
+    public ResponseEntity<ApiResponse<ClazzArticlePayload>> getArticle(@PathVariable("class_id") Long id){
+        ApiResponse<ClazzArticlePayload> payload=classService.findArticle(id);
+        return ResponseEntity.ok(payload);
+    }
+
+    @PostMapping("/{class_id}/participants")
+    public ResponseEntity<ApiResponse<ClazzParticipatePayload>> applyClass(@PathVariable("class_id") Long id, @AuthenticationPrincipal User user){
+        ApiResponse<ClazzParticipatePayload> payload=classService.applyClass(id,user.getId());
         return ResponseEntity.ok(payload);
     }
 

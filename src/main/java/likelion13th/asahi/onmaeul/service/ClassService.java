@@ -1,12 +1,17 @@
 package likelion13th.asahi.onmaeul.service;
 
+import jakarta.transaction.Transactional;
 import likelion13th.asahi.onmaeul.domain.*;
 import likelion13th.asahi.onmaeul.domain.Class;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
+import likelion13th.asahi.onmaeul.dto.response.clazz.ClazzArticlePayload;
 import likelion13th.asahi.onmaeul.dto.response.clazz.ClazzItem;
+import likelion13th.asahi.onmaeul.dto.response.clazz.ClazzParticipatePayload;
 import likelion13th.asahi.onmaeul.dto.response.clazz.ClazzPayload;
 import likelion13th.asahi.onmaeul.dto.response.myPage.PagingInfo;
+import likelion13th.asahi.onmaeul.repository.ClassParticipantRepository;
 import likelion13th.asahi.onmaeul.repository.ClassRepository;
+import likelion13th.asahi.onmaeul.repository.UserRepository;
 import likelion13th.asahi.onmaeul.util.CursorUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -14,8 +19,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
 
+import java.util.Arrays;
 import java.util.List;
 
 import static likelion13th.asahi.onmaeul.dto.response.ApiResponse.ok;
@@ -25,6 +32,8 @@ import static likelion13th.asahi.onmaeul.dto.response.ApiResponse.ok;
 @RequiredArgsConstructor
 public class ClassService {
     private final ClassRepository classRepository;
+    private final UserRepository userRepository;
+    private final ClassParticipantRepository classParticipantRepository;
 
     public ApiResponse<ClazzPayload> findList(String nextCursor, ClassStatus status, int limit) {
         List<Class> classes;
@@ -92,13 +101,18 @@ public class ClassService {
         //pageable 정보
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-        if(status == null){
+        Page<Class> classPage;
+        List<Class> classes;
 
+        if(status == null){
+            //Repository에서 키워드로 데이터 조회(status Null)
+            classPage=classRepository.findByKeyword(keyword,pageable);
+            classes=classPage.getContent();
         }
         //Repository에서 키워드로 데이터 조회(status OPEN만)
         else {
-            Page<Class> classPage = classRepository.findByKeywordAndStatus(keyword, ClassStatus.OPEN, pageable);
-            List<Class> classes = classPage.getContent();
+            classPage = classRepository.findByKeywordAndStatus(keyword, ClassStatus.OPEN, pageable);
+            classes = classPage.getContent();
         }
         List<ClazzItem> clazzItems= classes.stream()
                 .map(e->{
@@ -126,5 +140,44 @@ public class ClassService {
         return ok("class list 검색 성공",clazzPayload);
     }
 
+    public ApiResponse<ClazzArticlePayload> findArticle(long id) {
+        //id 기반 class 가져오기
+        Class clazz = classRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("not found: " + id));
 
-}
+        //String List<String>으로 변환
+        List<String> timeTableList = Arrays.asList(clazz.getTimetable().split("\n"));
+
+        //dto 변환
+        ClazzArticlePayload clazzArticlePayload = ClazzArticlePayload.builder()
+                .title(clazz.getTitle())
+                .hostId(clazz.getHostId())
+                .status(clazz.getStatus().toString())
+                .timeTable(timeTableList)
+                .schedule(clazz.getSchedule().toString())
+                .description(clazz.getDescription())
+                .createdAt(clazz.getCreatedAt().toString()).build();
+
+        return ok("class 글 상세보기 성공 ", clazzArticlePayload);
+    }
+
+    @Transactional
+    public ApiResponse<ClazzParticipatePayload> applyClass(Long classId,Long userId){
+        Class classInfo=classRepository.findById(classId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 수업입니다."));
+        User user=userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
+
+        ClassParticipant newParticipant=ClassParticipant.create(user,classInfo);
+
+        classParticipantRepository.save(newParticipant);
+
+        ClazzParticipatePayload clazzParticipatePayload=ClazzParticipatePayload.builder()
+                .classId(classInfo.getId())
+                .hostId(user.getId())
+                .build();
+
+        return ok("class 신청 성공 ",clazzParticipatePayload);
+    }
+    }
+

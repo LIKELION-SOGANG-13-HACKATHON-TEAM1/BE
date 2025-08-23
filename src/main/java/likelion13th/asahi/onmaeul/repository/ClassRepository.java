@@ -48,8 +48,12 @@ public interface ClassRepository extends JpaRepository<Class, Long> {
     List<Class> findNextPage(@Param("createdAt") OffsetDateTime createdAt, @Param("id") Long id, Pageable pageable);
 
     //class 검색하기(status OPEN)
-    @Query("SELECT c FROM Class c WHERE c.status = :status AND (c.title LIKE %:keyword% OR c.description LIKE %:keyword%) ORDER BY c.createdAt DESC")
+    @Query("SELECT c FROM Class c WHERE c.status = :status AND (c.title LIKE CONCAT('%', :keyword, '%') OR c.description LIKE CONCAT('%', :keyword, '%')) ORDER BY c.createdAt DESC")
     Page<Class> findByKeywordAndStatus(@Param("keyword") String keyword, @Param("status") ClassStatus classStatus, Pageable pageable);
+
+    //class 검색하기(status null)
+    @Query("SELECT c FROM Class c WHERE c.title LIKE CONCAT('%', :keyword, '%') OR c.description LIKE CONCAT('%', :keyword, '%') ORDER BY c.createdAt DESC")
+    Page<Class> findByKeyword(String keyword, Pageable pageable);
 }
 
 
