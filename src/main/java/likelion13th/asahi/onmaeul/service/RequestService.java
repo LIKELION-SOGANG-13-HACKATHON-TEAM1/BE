@@ -1,15 +1,18 @@
 package likelion13th.asahi.onmaeul.service;
 
 import likelion13th.asahi.onmaeul.domain.*;
+import likelion13th.asahi.onmaeul.dto.request.UpdateRequest;
 import likelion13th.asahi.onmaeul.dto.response.requestTab.*;
 import likelion13th.asahi.onmaeul.repository.HelpRequestRepository;
 import likelion13th.asahi.onmaeul.repository.MatchRepository;
 import likelion13th.asahi.onmaeul.repository.UserRepository;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -125,4 +128,126 @@ public class RequestService {
                 .canDelete(canDelete)
                 .build();
     }
+
+    public RequestDetailPayload getRequestDetails(Long userId, Long requestId) {
+        // 사용자 정보 + 요청 글 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        HelpRequest request = helpRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("요청을 찾을 수 없습니다."));
+
+        // DTO 빌드 (공통 정보)
+        RequestDetailPayload.RequestDetailPayloadBuilder builder = RequestDetailPayload.builder()
+                .requestId(request.getId())
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .images(request.getImages())
+                .location(request.getLocation())
+                .requestTime(request.getRequestTime().toString())
+                .status(request.getStatus().toString().toLowerCase());
+
+        // 상태 및 역할에 따라 추가 정보 및 액션 버튼 설정
+        if (UserRole.SENIOR.equals(user.getRole())) {
+            // 어르신용 DTO 구성
+            builder.seniorInfo(SeniorInfo.from(user));
+            Optional<Match> matchOpt = matchRepository.findByHelpRequest(request);
+
+            if (matchOpt.isPresent()) {
+                Match match = matchOpt.get();
+                User junior = match.getResponser();
+                builder.juniorInfo(JuniorInfo.from(junior));
+                builder.actions(getSeniorActionsForMatch(request.getStatus()));
+            } else {
+                builder.actions(getSeniorActionsForPending(request.getStatus()));
+            }
+        } else if (UserRole.JUNIOR.equals(userRepository.findById(userId).get().getRole())) {
+            // 청년용 DTO 구성: 어르신 정보만 담음!! (본인 정보와 버튼은 제외)
+            User senior = request.getRequester();
+            builder.seniorInfo(SeniorInfo.from(senior));
+        }
+
+        return builder.build();
+    }
+
+    private ActionsDto getSeniorActionsForPending(HelpRequestStatus status) {
+        // 요청이 PENDING 상태일 때만 수정/취소 버튼이 활성화됩니다.
+        boolean canEdit = (status == HelpRequestStatus.PENDING);
+        boolean canDelete = (status == HelpRequestStatus.PENDING);
+
+        return ActionsDto.builder()
+                .canEdit(canEdit)
+                .canDelete(canDelete)
+                .build();
+    }
+    private ActionsDto getSeniorActionsForMatch(HelpRequestStatus status) {
+        // 요청이 매칭되었을 때 '도움 시작' 버튼이 활성화됩니다.
+        boolean canStart = (status == HelpRequestStatus.MATCHED);
+
+        // 요청이 진행 중일 때 '도움 완료' 버튼이 활성화됩니다.
+        boolean canComplete = (status == HelpRequestStatus.IN_PROGRESS);
+
+        // 어르신은 리뷰를 남길 수 있는 상태도 고려해야 합니다.
+        boolean canReview = (status == HelpRequestStatus.COMPLETED_UNREVIEWED);
+
+        return ActionsDto.builder()
+                .canStart(canStart)
+                .canComplete(canComplete)
+                .canReview(canReview)
+                .build();
+    }
+
+    @Transactional
+    public void updateHelpRequest(Long userId, Long requestId, UpdateRequest request) {
+        HelpRequest helpRequest = helpRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("요청을 찾을 수 없습니다."));
+
+        validateSeniorAction(userId, helpRequest, HelpRequestStatus.PENDING, "수정");
+
+        // 요청글의 제목, 내용, 이미지를 업데이트
+        helpRequest.update(request);
+        helpRequestRepository.save(helpRequest);
+    }
+
+    @Transactional
+    public void cancelHelpRequest(Long userId, Long requestId) {
+        HelpRequest request = helpRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("요청을 찾을 수 없습니다."));
+
+        validateSeniorAction(userId, request, HelpRequestStatus.PENDING, "취소");
+
+        request.setStatus(HelpRequestStatus.CANCELED);
+        helpRequestRepository.save(request);
+    }
+
+    @Transactional
+    public void startHelpRequest(Long userId, Long requestId) {
+        HelpRequest request = helpRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("요청을 찾을 수 없습니다."));
+
+        validateSeniorAction(userId, request, HelpRequestStatus.MATCHED, "도움 시작");
+
+        request.setStatus(HelpRequestStatus.IN_PROGRESS);
+        helpRequestRepository.save(request);
+    }
+
+    @Transactional
+    public void completeHelpRequest(Long userId, Long requestId) {
+        HelpRequest request = helpRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("요청을 찾을 수 없습니다."));
+
+        validateSeniorAction(userId, request, HelpRequestStatus.IN_PROGRESS, "도움 완료");
+
+        request.setStatus(HelpRequestStatus.COMPLETED_UNREVIEWED);
+        helpRequestRepository.save(request);
+    }
+
+    private void validateSeniorAction(Long userId, HelpRequest request, HelpRequestStatus requiredStatus, String actionName) {
+        if (!request.getRequester().getId().equals(userId)) {
+            throw new IllegalArgumentException(actionName + "할 권한이 없습니다.");
+        }
+        if (!request.getStatus().equals(requiredStatus)) {
+            throw new IllegalArgumentException(actionName + "는 " + requiredStatus + " 상태에서만 가능합니다.");
+        }
+    }
+
 }
