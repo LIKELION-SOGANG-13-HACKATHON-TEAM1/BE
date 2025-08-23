@@ -7,8 +7,10 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
+@Builder
 @Table(name="Review")
 @Getter //@setter 설정 안함으로 외부 생성 막기
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access= AccessLevel.PROTECTED)
 public class Review {
 
