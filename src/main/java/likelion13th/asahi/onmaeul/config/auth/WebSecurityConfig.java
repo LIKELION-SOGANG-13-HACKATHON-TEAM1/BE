@@ -86,7 +86,6 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/home","/signup", "/login", "/public/**","/css/**","/js/**","/images/**","/favicon.ico","/error").permitAll()
-                        .requestMatchers("/request/{request_id}/**").hasAuthority("SENIOR")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(e -> e
