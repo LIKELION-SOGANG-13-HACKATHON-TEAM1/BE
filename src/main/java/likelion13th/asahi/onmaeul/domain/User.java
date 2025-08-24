@@ -49,4 +49,8 @@ public class User {
     @Enumerated(EnumType.STRING) // enum -> 문자열로 저장!
     @Column(name = "role", nullable = false, length = 20)
     private UserRole role;
+
+    public void changeUsername(String username) { this.username = username; }
+    public void changeIntroduce(String introduce) { this.introduce = introduce; }
+    public void changeProfileUrl(String profileUrl) { this.profileUrl = profileUrl; }
 }

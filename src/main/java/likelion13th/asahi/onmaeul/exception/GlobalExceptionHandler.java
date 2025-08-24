@@ -28,4 +28,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(409)
                 .body(ApiResponse.error("E409", e.getMessage()));
     }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<?> handle400(BadRequestException e) {
+        return ResponseEntity.status(400)
+                .body(ApiResponse.error("E400", e.getMessage()));
+    }
+
 }

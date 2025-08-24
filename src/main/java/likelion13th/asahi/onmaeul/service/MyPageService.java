@@ -1,6 +1,8 @@
 package likelion13th.asahi.onmaeul.service;
 
 import likelion13th.asahi.onmaeul.domain.*;
+import likelion13th.asahi.onmaeul.dto.request.EditMyPageRequest;
+import likelion13th.asahi.onmaeul.exception.*;
 import likelion13th.asahi.onmaeul.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -52,6 +54,38 @@ public class MyPageService {
                 .user_id(u.getId())
                 .user_name(u.getUsername())
                 .birth_date(u.getBirthDate() == null ? null : u.getBirthDate().toString()) // 선택 필드
+                .user_phonenumber(u.getPhoneNumber())
+                .user_introduce(u.getIntroduce())
+                .profile_url(u.getProfileUrl())
+                .build();
+    }
+
+    /** 이름/소개만 수정 */
+    @Transactional
+    public EditMyPagePayload updateMyPage(Long userId, EditMyPageRequest req) {
+        boolean nothingToUpdate =
+                (req.getName() == null || req.getName().isBlank())
+                        && (req.getIntroduce() == null || req.getIntroduce().isBlank());
+
+        if (nothingToUpdate) {
+            throw new BadRequestException("허용되지 않은 필드가 포함되었거나 수정할 값이 없습니다.");
+        }
+
+        User u = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 사용자입니다."));
+
+        if (req.getName() != null && !req.getName().isBlank()) {
+            u.changeUsername(req.getName());
+        }
+        if (req.getIntroduce() != null) {
+            u.changeIntroduce(req.getIntroduce());
+        }
+
+        // 응답(읽기 전용 포함)
+        return EditMyPagePayload.builder()
+                .user_id(u.getId())
+                .user_name(u.getUsername())
+                .birth_date(u.getBirthDate() != null ? u.getBirthDate().toString() : null)
                 .user_phonenumber(u.getPhoneNumber())
                 .user_introduce(u.getIntroduce())
                 .profile_url(u.getProfileUrl())
