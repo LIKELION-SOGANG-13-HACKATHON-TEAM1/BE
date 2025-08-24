@@ -1,6 +1,7 @@
 package likelion13th.asahi.onmaeul.controller;
 
 import likelion13th.asahi.onmaeul.domain.ClassStatus;
+import likelion13th.asahi.onmaeul.dto.request.EditMyPageRequest;
 import likelion13th.asahi.onmaeul.dto.response.myPage.*;
 import likelion13th.asahi.onmaeul.config.auth.CustomUserDetails;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 public class MyPageController {
     private final MyPageService myPageService;
 
-    /* 로그인(세션)되어 있다고 가정 */
     @GetMapping
     public ResponseEntity<ApiResponse<MyPagePayload>> getMyPage(
             @AuthenticationPrincipal CustomUserDetails me // 주입받기
@@ -29,17 +29,14 @@ public class MyPageController {
         );
     }
 
-    /* 수정 페이지 진입 (로그인 필요) */
-    @GetMapping("/edit")
-    public ResponseEntity<ApiResponse<EditMyPagePayload>> getMyPageEdit(
-            @AuthenticationPrincipal CustomUserDetails me
+    @PreAuthorize("hasAnyRole('SENIOR','JUNIOR')")
+    @PatchMapping
+    public ResponseEntity<ApiResponse<EditMyPagePayload>> updateMyPage(
+            @AuthenticationPrincipal CustomUserDetails me,
+            @RequestBody EditMyPageRequest request
     ) {
-        Long userId = me.getId();
-        EditMyPagePayload data = myPageService.getEditPageById(userId);
-
-        return ResponseEntity.ok(
-                ApiResponse.ok("내정보 수정페이지 조회 성공", data)
-        );
+        EditMyPagePayload data = myPageService.updateMyPage(me.getId(), request);
+        return ResponseEntity.ok(ApiResponse.ok("내 정보 수정 성공", data));
     }
 
     /** 도움 신청 내역(어르신이 도움 받은 내역) 리스트 조회 */
@@ -119,6 +116,17 @@ public class MyPageController {
         // 사용자의 ID를 서비스 메소드에 전달
         ClassListPayload data = myPageService.getAppliedClasses(me.getId(), filter_status);
         return ResponseEntity.ok(ApiResponse.ok("신청한 수업 목록 조회 성공", data));
+    }
+
+    /** 개설한 수업 내역 보기 */
+    @PreAuthorize("hasAnyRole('SENIOR','JUNIOR')")
+    @GetMapping("/classCourse")
+    public ResponseEntity<ApiResponse<ClassListPayload>> getOpenedClasses(
+            @AuthenticationPrincipal CustomUserDetails me,
+            @RequestParam(name = "filter_status", required = false) ClassStatus filterStatus // 대문자: OPEN/CLOSED
+    ) {
+        ClassListPayload data = myPageService.getOpenedClasses(me.getId(), filterStatus);
+        return ResponseEntity.ok(ApiResponse.ok("개설한 수업 목록 조회 성공", data));
     }
 
 }

@@ -54,6 +54,15 @@ public interface ClassRepository extends JpaRepository<Class, Long> {
     //class 검색하기(status null)
     @Query("SELECT c FROM Class c WHERE c.title LIKE CONCAT('%', :keyword, '%') OR c.description LIKE CONCAT('%', :keyword, '%') ORDER BY c.createdAt DESC")
     Page<Class> findByKeyword(String keyword, Pageable pageable);
+
+    @Query("""
+        select c
+        from Class c
+        join fetch c.host h
+        where c.hostId = :hostId
+        order by c.schedule asc, c.id asc
+    """)
+    List<Class> findAllByHostId(@Param("hostId") Long hostId);
 }
 
 
