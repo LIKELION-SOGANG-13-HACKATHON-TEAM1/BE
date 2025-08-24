@@ -25,15 +25,4 @@ public class RedisConfig {
         return template;
     }
 
-    // ✅ 문자열 전용 템플릿 (값도 무조건 String)
-    @Bean(name = "stringRedisTemplate")
-    public RedisTemplate<String, String> stringRedisTemplate(RedisConnectionFactory cf) {
-        RedisTemplate<String, String> t = new RedisTemplate<>();
-        t.setConnectionFactory(cf);
-        t.setKeySerializer(new StringRedisSerializer());
-        t.setValueSerializer(new StringRedisSerializer());
-        return t;
-    }
-
-
 }
