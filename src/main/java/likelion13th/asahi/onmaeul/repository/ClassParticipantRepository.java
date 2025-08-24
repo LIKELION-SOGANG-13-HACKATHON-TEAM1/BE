@@ -19,4 +19,15 @@ public interface ClassParticipantRepository extends JpaRepository<ClassParticipa
           AND c.status = :status
         """)
     List<ClassParticipant> findByUserIdAndStatus(@Param("userId") Long userId, @Param("status") ClassStatus status); // 파라미터 타입을 ClassStatus로 수정
+
+    @Query("""
+      select cp
+      from ClassParticipant cp
+      join fetch cp.clazz c
+      join fetch c.host h
+      where cp.user.id = :userId
+      order by c.schedule asc, c.id asc
+      """)
+    List<ClassParticipant> findAllWithClassByUser(@Param("userId") Long userId);
+
 }

@@ -10,6 +10,7 @@ import likelion13th.asahi.onmaeul.dto.response.myPage.*;
 import java.lang.Class;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -24,6 +25,9 @@ public class MyPageService {
     private final ReviewRepository reviewRepository;
     private final ClassParticipantRepository classParticipantRepository;
     private final ClassRepository classRepository;
+
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final DateTimeFormatter ISO_OFFSET = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
     public MyPagePayload getMyPageById(Long userId) {
         // DB에서 User 조회
@@ -269,77 +273,46 @@ public class MyPageService {
                 .build();
     }
 
-//    @Transactional(readOnly = true)
-//    public ClassListPayload getAppliedClasses(Long userId, String status) {
-//
-//        // 1. Repository에서 데이터 조회
-//        List<ClassParticipant> participants = classParticipantRepository.findByUserIdAndStatus(userId, status);
-//
-//        // 2. DTO 매핑
-//        var items = participants.stream()
-//                .map(cp -> ClassItemPayload.builder()
-//                        .id(cp.getClazz().getId()) // clazz로 변경
-//                        .title(cp.getClazz().getTitle())
-//                        .host_id(cp.getClazz().getHost().getId())
-//                        .host_name(cp.getClazz().getHost().getUsername())
-//                        .schedule(toIso(cp.getClazz().getSchedule())) // LocalDateTime 변환
-//                        .status(cp.getClazz().getStatus().name()) // Classes 엔티티의 status 사용
-//                        .description(cp.getClazz().getDescription())
-//                        .build())
-//                .collect(Collectors.toList());
-//
-//        // 3. PagingInfo 구성 (전체 조회)
-//        PagingInfo paging = PagingInfo.builder()
-//                .all(true)
-//                .count(items.size())
-//                .has_next(false)
-//                .next_cursor(null)
-//                .build();
-//
-//        // 4. 최종 Payload 반환
-//        return ClassListPayload.builder()
-//                .filter_status(status)
-//                .class_list(items)
-//                .paging(paging)
-//                .build();
-//    }
-//
-//    /**
-//     * 개설한 수업 목록 보기 (강사용): 필터링 기능 포함
-//     */
-//    @Transactional(readOnly = true)
-//    public ClassListPayload getOpenedClasses(Long userId, String status) {
-//
-//        // 1. Repository에서 데이터 조회 (hostId는 userId와 동일)
-//        List<Class> classes = classRepository.findAllByHostIdAndStatus(userId, status);
-//
-//        // 2. DTO 매핑
-//        var items = classes.stream()
-//                .map(c -> likelion13th.asahi.onmaeul.domain.Class.class.cast(c)) // class 이름 중복 이슈..
-//                .map(c -> ClassItemPayload.builder()
-//                        .id(c.getId())
-//                        .title(c.getTitle())
-//                        .host_id(c.getHostId())
-//                        .host_name(c.getHost().getUsername())
-//                        .schedule(toIso(c.getSchedule()))
-//                        .status(c.getStatus().name())
-//                        .description(c.getDescription())
-//                        .build())
-//                .collect(Collectors.toList());
-//
-//        // 3. PagingInfo 구성
-//        PagingInfo paging = PagingInfo.builder()
-//                .all(true)
-//                .count(items.size())
-//                .has_next(false)
-//                .next_cursor(null)
-//                .build();
-//
-//        // 4. 최종 Payload 반환
-//        return ClassListPayload.builder()
-//                .filter_status(status)
-//                .class_list(items)
-//                .paging(paging)
-//                .build();
-//    }
+    @Transactional(readOnly = true)
+    public ClassListPayload getAppliedClasses(Long userId, ClassStatus filterStatus) {
+        var rows = classParticipantRepository.findAllWithClassByUser(userId);
+
+        List<ClassItemPayload> items = rows.stream()
+                .map(cp -> {
+                    var clazz = cp.getClazz();  // 수업 엔티티
+                    var host  = clazz.getHost();
+
+                    // LocalDateTime → 문자열(+09:00 보정)
+                    String scheduleStr = null;
+                    if (clazz.getSchedule() != null) {
+                        scheduleStr = clazz.getSchedule()
+                                .atZone(KST)
+                                .toOffsetDateTime()
+                                .format(ISO_OFFSET);
+                    }
+
+                    return ClassItemPayload.builder()
+                            .id(clazz.getId())
+                            .title(clazz.getTitle())
+                            .host_id(host.getId())
+                            .host_name(host.getUsername()) // UI: "강사 OOO 청년"
+                            .schedule(scheduleStr)
+                            .status(clazz.getStatus())
+                            .description(clazz.getDescription())
+                            .build();
+                })
+                .filter(item -> filterStatus == null || item.getStatus() == filterStatus)
+                .toList();
+
+        return ClassListPayload.builder()
+                .filter_status(filterStatus)
+                .class_list(items)
+                .paging(PagingInfo.builder()
+                        .all(true)
+                        .count(items.size())
+                        .has_next(false)
+                        .next_cursor(null)
+                        .build())
+                .build();
+    }
 }
