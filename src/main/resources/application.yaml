@@ -3,7 +3,7 @@ server:
     session:
       cookie:
         same-site: None
-        secure: false # http 용
+        secure: true # https 용
 
 spring:
   datasource:
