@@ -249,7 +249,7 @@ public class ChatService {
         sb.append("action 규칙: 필수값이 비면 ASK, 모두 채워지고 생성 의사면 CREATE, 수정 의사면 REVISE, 확답 없으면 CONFIRM.\n")
                 .append("CONFIRM일 때 bot_reply는 한 줄 요약 + '이대로 생성할까요?'로 하세요.\n");
 
-        sb.append("기존 수집된 정보: ").append(objectMapper.valueToTree(currentForm)).append("\n");
+        sb.append("기존 수집된 정보: ").append(objectMapper.valueToTree(currentForm).toString()).append("\n");
         sb.append("새로운 메시지: ").append(request.getMessage());
 
         if (request.getAttachments() != null && !request.getAttachments().isEmpty()) {
