@@ -35,6 +35,7 @@ logging:
   level:
     root: INFO
     org.springframework: DEBUG
+    likelion13th.asahi.onmaeul.service: DEBUG
 
 home:
   guest:
