@@ -68,7 +68,7 @@ public class HelpRequestService {
                                 .location(e.getLocation())
                                 .requestTime(e.getRequestTime().toString())
                                 .createdAt(e.getCreatedAt().toString())
-                                .category(e.getCategory())
+                                .category(e.getCategory().getName())
                                 .route("/help-requests/" + e.getId())
                                 .build();
                     })
@@ -105,7 +105,7 @@ public class HelpRequestService {
                             .location(e.getLocation())
                             .requestTime(e.getRequestTime().toString())
                             .createdAt(e.getCreatedAt().toString())
-                            .category(e.getCategory())
+                            .category(e.getCategory().getName())
                             .route("/help-requests/" + e.getId())
                             .build();
 
