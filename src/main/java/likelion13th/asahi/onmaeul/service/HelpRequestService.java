@@ -140,7 +140,8 @@ var last = helpRequests.get(helpRequests.size() - 1); //helpRequestItem 속 마�
                 .status(helprequest.getStatus().toString())
                 .createdAt(helprequest.getCreatedAt().toString())
                 .categoryId(helprequest.getCategory().getId())
-                .categoryName(helprequest.getCategory().getName());
+                .categoryName(helprequest.getCategory().getName())
+                .estimatedTimeInMinutes(helprequest.getEstimatedMinutes());
 
         //user가 senior인지 확인
         boolean isSenior=helprequest.getRequester().getId().equals(user.getId());

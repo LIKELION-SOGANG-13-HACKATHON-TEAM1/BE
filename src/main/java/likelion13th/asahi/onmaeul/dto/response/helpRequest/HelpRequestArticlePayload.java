@@ -43,6 +43,9 @@ public class HelpRequestArticlePayload {
 
     @JsonProperty("ui_flags")
     private UiFlags uiFlags;
+    
+    @JsonProperty("estimated_time_in_minutes")
+    private Integer estimatedTimeInMinutes;
 
     private Routes routes;
     private Writer writer;
