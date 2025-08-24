@@ -3,6 +3,7 @@ package likelion13th.asahi.onmaeul.controller;
 import likelion13th.asahi.onmaeul.config.auth.CustomUserDetails;
 import likelion13th.asahi.onmaeul.dto.request.AcceptMatchRequest;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
+import likelion13th.asahi.onmaeul.exception.UnauthorizedException;
 import likelion13th.asahi.onmaeul.service.MatchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
