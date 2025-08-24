@@ -20,4 +20,13 @@ public class ApiResponse<T> {
                 .data(data)
                 .build();
     }
+    /** 에러 응답 */
+    public static <T> ApiResponse<T> error(String code, String message) {
+        return ApiResponse.<T>builder()
+                .is_success(false)
+                .code(code)
+                .message(message)
+                .data(null)
+                .build();
+    }
 }

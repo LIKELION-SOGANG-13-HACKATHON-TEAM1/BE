@@ -1,6 +1,8 @@
 package likelion13th.asahi.onmaeul.service;
 
 import likelion13th.asahi.onmaeul.domain.*;
+import likelion13th.asahi.onmaeul.exception.NotFoundException;
+import likelion13th.asahi.onmaeul.exception.UnauthorizedException;
 import likelion13th.asahi.onmaeul.repository.HelpRequestRepository;
 import likelion13th.asahi.onmaeul.repository.MatchRepository;
 import likelion13th.asahi.onmaeul.repository.UserRepository;
@@ -19,7 +21,7 @@ public class MatchService {
     public void acceptHelpRequest(Long helpRequestId, Long responserId) {
         // 1. 도움 요청글 유효성 확인
         HelpRequest helpRequest = helpRequestRepository.findById(helpRequestId)
-                .orElseThrow(() -> new IllegalArgumentException("요청글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException("조회 가능한 요청이 없습니다."));
 
         // 2. 이미 매칭된 요청인지 확인 (중복 수락 방지)
         if (helpRequest.getStatus() != HelpRequestStatus.PENDING) {
@@ -28,7 +30,7 @@ public class MatchService {
 
         // 3. 응답자(청년) 유효성 확인
         User responser = userRepository.findById(responserId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UnauthorizedException("로그인이 필요합니다."));
 
         // 4. Match 엔티티 생성
         Match newMatch = Match.builder()

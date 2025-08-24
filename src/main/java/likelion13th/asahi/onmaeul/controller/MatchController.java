@@ -26,6 +26,7 @@ public class MatchController {
             @AuthenticationPrincipal CustomUserDetails me,
             @RequestBody AcceptMatchRequest request
     ) {
+        if (me == null) throw new UnauthorizedException("로그인이 필요합니다."); // 401로 매핑
         matchService.acceptHelpRequest(request.getHelpRequestId(), me.getId());
         return ResponseEntity.ok(ApiResponse.ok("도움 요청 수락 성공", null));
     }
