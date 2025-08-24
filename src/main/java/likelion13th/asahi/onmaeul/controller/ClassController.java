@@ -22,7 +22,7 @@ public class ClassController {
     private final ClassService classService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<ClazzPayload>> getList(@RequestParam(defaultValue = "3") int limit, @RequestParam(value = "cursor", required = false) String nextCursor, @RequestParam ClassStatus status) {
+    public ResponseEntity<ApiResponse<ClazzPayload>> getList(@RequestParam(defaultValue = "3") int limit, @RequestParam(value = "cursor", required = false) String nextCursor, @RequestParam(required = false) ClassStatus status) {
         ApiResponse<ClazzPayload> payload = classService.findList(nextCursor, status, limit);
 
         return ResponseEntity.ok(payload);
