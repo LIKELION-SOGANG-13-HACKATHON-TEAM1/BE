@@ -49,6 +49,4 @@ public class ClassController {
         ApiResponse<ClazzParticipatePayload> payload=classService.applyClass(id,user.getId());
         return ResponseEntity.ok(payload);
     }
-
-
 }

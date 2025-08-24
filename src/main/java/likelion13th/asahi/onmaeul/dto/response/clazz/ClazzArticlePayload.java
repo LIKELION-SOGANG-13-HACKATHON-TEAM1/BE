@@ -16,8 +16,8 @@ public class ClazzArticlePayload {
     private String description;
     @JsonProperty("time_table")
     private List<String> timeTable;
-    @JsonProperty("host_id")
-    private Long hostId;
+    @JsonProperty("host_name")
+    private String hostName;
     @JsonProperty("created_at")
     private String createdAt;
     private String status;

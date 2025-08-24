@@ -151,7 +151,7 @@ public class ClassService {
         //dto 변환
         ClazzArticlePayload clazzArticlePayload = ClazzArticlePayload.builder()
                 .title(clazz.getTitle())
-                .hostId(clazz.getHostId())
+                .hostName(clazz.getHost().getUsername())
                 .status(clazz.getStatus().toString())
                 .timeTable(timeTableList)
                 .schedule(clazz.getSchedule())
@@ -174,7 +174,7 @@ public class ClassService {
 
         ClazzParticipatePayload clazzParticipatePayload=ClazzParticipatePayload.builder()
                 .classId(classInfo.getId())
-                .hostId(user.getId())
+                .hostName(user.getUsername())
                 .build();
 
         return ok("class 신청 성공 ",clazzParticipatePayload);
