@@ -194,30 +194,41 @@ public class ChatService {
                 .build();
     }
 
-    // 로드 (핵심: convertValue로 타입 고정)
+    // 저장: form을 그대로 저장하되, 예외는 삼키고 로그만
+    private void saveFormToRedis(String sessionId, ChatResponsePayload.CollectedForm form) {
+        if (sessionId == null || sessionId.isBlank()) return;
+        try {
+            String key = "chat:session:" + sessionId;  // 항상 String 키
+            redisTemplate.opsForValue().set(key, form, Duration.ofSeconds(1800));
+        } catch (Exception e) {
+            log.error("Redis save error: sessionId={}, err={}", sessionId, e.toString(), e);
+            // 여기서 throw하면 500로 번집니다. 절대 던지지 마세요.
+        }
+    }
+
+    // 로드: 어떤 타입이 와도 CollectedForm으로 '안전 변환'
     private ChatResponsePayload.CollectedForm getFormFromRedis(String sessionId) {
-        if (sessionId == null) return null;
+        if (sessionId == null || sessionId.isBlank()) return null;
         try {
             String key = "chat:session:" + sessionId;
             Object obj = redisTemplate.opsForValue().get(key);
             if (obj == null) return null;
-            // obj가 LinkedHashMap이어도 아래가 CollectedForm으로 변환해줍니다.
+
+            if (obj instanceof ChatResponsePayload.CollectedForm cf) {
+                return cf; // 이미 우리 타입이면 그대로
+            }
+            if (obj instanceof String s) { // JSON 문자열로 저장된 경우
+                return objectMapper.readValue(s, ChatResponsePayload.CollectedForm.class);
+            }
+            // Map/LinkedHashMap/ObjectNode 등 모든 케이스 안전 변환
             return objectMapper.convertValue(obj, ChatResponsePayload.CollectedForm.class);
+
         } catch (Exception e) {
-            log.error("Redis load error: key={}, err={}", sessionId, e.toString(), e);
-            return null;
+            log.error("Redis load error: sessionId={}, err={}", sessionId, e.toString(), e);
+            return null; // 세션 없다고 처리하고 계속 진행
         }
     }
 
-    // 저장
-    private void saveFormToRedis(String sessionId, ChatResponsePayload.CollectedForm form) {
-        try {
-            String key = "chat:session:" + sessionId;
-            redisTemplate.opsForValue().set(key, form, Duration.ofSeconds(1800));
-        } catch (Exception e) {
-            log.error("Redis save error: key={}, err={}", sessionId, e.toString(), e);
-        }
-    }
 
     private String buildPromptForLLM(ChatRequest request, ChatResponsePayload.CollectedForm currentForm) {
         StringBuilder sb = new StringBuilder();
