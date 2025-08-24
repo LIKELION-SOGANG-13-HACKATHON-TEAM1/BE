@@ -154,7 +154,7 @@ public class ClassService {
                 .hostId(clazz.getHostId())
                 .status(clazz.getStatus().toString())
                 .timeTable(timeTableList)
-                .schedule(clazz.getSchedule().toString())
+                .schedule(clazz.getSchedule())
                 .description(clazz.getDescription())
                 .createdAt(clazz.getCreatedAt().toString()).build();
 
