@@ -33,10 +33,8 @@ public class HomeController {
                     .build();
             return ResponseEntity.ok(ApiResponse.ok(guestHomeProps.message(), payload));
         }
-
         ApiResponse<?extends HomePayload> payload=homeService.getHome(user);
         return ResponseEntity.ok(payload);
-
         }
 
     }
