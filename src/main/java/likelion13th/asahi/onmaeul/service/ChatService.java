@@ -103,8 +103,14 @@ public class ChatService {
                         .build()
         ).getChoices().get(0).getMessage().getContent();
 
+        // ⭐️ 추가된 로그: LLM 응답 내용 확인
+        log.info("Received LLM response: {}", llmResponseJson);
+
         // 5) 파싱/업데이트
         ChatResponsePayload.CollectedForm updatedForm = parseLlmResponse(llmResponseJson, currentForm);
+
+        // ⭐️ 추가된 로그: 파싱 후 업데이트된 폼 데이터 확인
+        log.info("Parsed and updated form: {}", updatedForm);
 
         // 6) 세션 저장
         saveFormToRedis(sessionId, updatedForm);
