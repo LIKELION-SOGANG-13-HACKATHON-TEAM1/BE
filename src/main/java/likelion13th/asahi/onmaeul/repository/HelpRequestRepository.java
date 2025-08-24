@@ -30,7 +30,7 @@ public interface HelpRequestRepository extends JpaRepository<HelpRequest, Long> 
 
     List<HelpRequest> findByRequesterId(Long requesterId);
 
-    @Query("SELECT h FROM HelpRequest h WHERE h.status = :status AND (h.title LIKE %:keyword% OR h.description LIKE %:keyword%) ORDER BY h.createdAt DESC")
+    @Query("SELECT h FROM HelpRequest h WHERE h.status = :status AND (h.title LIKE CONCAT('%', :keyword, '%') OR h.description LIKE CONCAT('%', :keyword, '%')) ORDER BY h.createdAt DESC")
     Page<HelpRequest> findByKeywordAndStatus(@Param("keyword") String keyword, @Param("status") HelpRequestStatus status, Pageable pageable);
 }
 

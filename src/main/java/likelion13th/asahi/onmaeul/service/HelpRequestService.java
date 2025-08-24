@@ -14,6 +14,7 @@ import likelion13th.asahi.onmaeul.repository.HelpRequestRepository;
 import likelion13th.asahi.onmaeul.util.CursorUtil;
 import likelion13th.asahi.onmaeul.dto.response.helpRequest.HelpRequestArticlePayload;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static likelion13th.asahi.onmaeul.dto.response.ApiResponse.ok;
 
@@ -32,63 +34,69 @@ import static likelion13th.asahi.onmaeul.dto.response.ApiResponse.ok;
 public class HelpRequestService {
     private final HelpRequestRepository helpRequestRepository;
 
-    public ApiResponse<HelpRequestPayload> findMain(String nextCursor, HelpRequestStatus status, UserRole role, int limit){
+    public ApiResponse<HelpRequestPayload> findMain(String nextCursor, HelpRequestStatus status, UserRole role, int limit) {
+        // 500 에러 디버깅 및 안정성 강화를 위한 try-catch 블록 추가
+        try {
+            final int queryLimit = limit + 1;
+            final Pageable pageable = PageRequest.of(0, queryLimit);
 
-        List<HelpRequest> helpRequests;
-        final Pageable pageable= (Pageable) PageRequest.of(0,limit); //cursor를 기반하여 페이지 가져오기에 offset은 항상 0으로 설정
+            List<HelpRequest> helpRequests;
 
-        if(nextCursor==null||nextCursor.isBlank()) {
-            //첫페이지 가져오기
-            helpRequests = helpRequestRepository.findTop5ByStatusOrderByCreatedAtDescIdDesc(status);
+            if (nextCursor == null || nextCursor.isBlank()) {
+                helpRequests = helpRequestRepository.findTop5ByStatusOrderByCreatedAtDescIdDesc(status);
+            } else {
+                // 커서 디코딩 실패는 클라이언트 오류이므로, 400 에러를 던지도록 수정
+                try {
+                    var c = CursorUtil.decode(nextCursor);
+                    helpRequests = helpRequestRepository.findNextPageByStatus(status, c.createdAt(), c.id(), pageable);
+                } catch (Exception e) {
+                    // GlobalExceptionHandler가 이 예외를 잡아 400 응답을 생성할 수 있음
+                    throw new IllegalArgumentException("잘못된 형식의 커서입니다.", e);
+                }
+            }
 
-        }else{
-            //두번째 이후 페이지 가져오기
-            var c = CursorUtil.decode(nextCursor);
-            helpRequests = helpRequestRepository.findNextPageByStatus(status, c.createdAt(), c.id(),pageable);
+            boolean hasMore = helpRequests.size() > limit;
+            List<HelpRequest> responseItems = hasMore ? helpRequests.subList(0, limit) : helpRequests;
+            String newCursor = null;
+
+            if (!responseItems.isEmpty()) {
+                var last = responseItems.get(responseItems.size() - 1);
+                newCursor = CursorUtil.encode(last.getCreatedAt(), last.getId());
+            }
+
+            List<HelpRequestItem> items = responseItems.stream()
+                    .map(e->{
+                        boolean canAccept = (status == HelpRequestStatus.PENDING)
+                                && (role == UserRole.JUNIOR);
+                        return HelpRequestItem.builder()
+                                .requestId(e.getId())
+                                .title(e.getTitle())
+                                .location(e.getLocation())
+                                .requestTime(e.getRequestTime().toString())
+                                .createdAt(e.getCreatedAt().toString())
+                                .category(e.getCategory())
+                                .route("/help-requests/" + e.getId())
+                                .build();
+                    })
+                    .toList();
+
+            HelpRequestPayload helpRequestPayload = HelpRequestPayload.builder()
+                    .items(items)
+                    .nextCursor(hasMore ? newCursor : null)
+                    .hasMore(hasMore)
+                    .build();
+
+            return ok("도움 요청 리스트 조회 성공", helpRequestPayload);
+
+        } catch (IllegalArgumentException e) {
+            // 위에서 던진 IllegalArgumentException을 다시 던져서 400으로 처리되도록 함
+            throw e;
+        } catch (Exception e) {
+            // 그 외 모든 예상치 못한 예외는 500 에러의 원인을 파악하기 위해 RuntimeException으로 감싸서 던짐
+            throw new RuntimeException("메인 리스트 조회 중 예상치 못한 서버 오류가 발생했습니다.", e);
         }
-
-        String newCursor=null;
-        boolean hasMore=false;
-        if(helpRequests.size()==limit){
-            /*5개의 글이 나올 시 다음이 더 있다고 반환
-            5개가 안되는 경우 마지막 페이지
-             */
-
-var last = helpRequests.get(helpRequests.size() - 1); //helpRequestItem 속 마지막 helpRequest 가져오기
-            newCursor = CursorUtil.encode(last.getCreatedAt(), last.getId());
-            hasMore = true;
-            //newCursor이 null이 아니고 hasMore이 true여야만 무한 스크롤 제공
-        }
-
-        //entity를 dto로 변환
-        List<HelpRequestItem> items=helpRequests.stream()
-                .map(e->{
-                    boolean canAccept = (status == HelpRequestStatus.PENDING)
-                            && (role == UserRole.JUNIOR);
-                    return HelpRequestItem.builder()
-                            .requestId(e.getId())
-                            .title(e.getTitle())
-                            .location(e.getLocation())
-                            .requestTime(e.getRequestTime().toString())
-                            .createdAt(e.getCreatedAt().toString())
-                            .category(e.getCategory())
-                            .route("/help-requests/" + e.getId())
-                            .build();
-                })
-                .toList();
-
-        String findRole=role.equals(UserRole.SENIOR)?"senior":"junior";
-
-        //HelpRequestPayload build
-        HelpRequestPayload helpRequestPayload=HelpRequestPayload.builder()
-                .items(items)
-                .nextCursor(newCursor)
-                .hasMore(hasMore)
-                .role(findRole)
-                .build();
-
-        return ok(findRole + "도움 요청 리스트 조회 성공",helpRequestPayload);
     }
+
     public ApiResponse<HelpRequestPayload> search(String keyword,UserRole role,int page,int size){
         //pageable 정보
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
@@ -119,7 +127,6 @@ var last = helpRequests.get(helpRequests.size() - 1); //helpRequestItem 속 마�
                 .items(items)
                 .nextCursor(null)//오프셋 기반 페이지네이션 사용했기에 커서 사용은 안한다
                 .hasMore(helpRequestPage.hasNext())
-                .role(findRole)
                 .build();
         return ok("도움 요청 리스트 검색 성공",helpRequestPayload);
     }

@@ -13,12 +13,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class HelpRequestPayload implements HomePayload {
+public class HelpRequestPayload{
     //요청 main 화면용 dto
     List<HelpRequestItem> items;
     @JsonProperty("next_cursor")
     String nextCursor;
     @JsonProperty("has_more")
     boolean hasMore;
-    String role;
 }

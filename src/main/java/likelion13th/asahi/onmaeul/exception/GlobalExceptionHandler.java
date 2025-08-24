@@ -2,9 +2,15 @@ package likelion13th.asahi.onmaeul.exception;
 
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
 import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -28,4 +34,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(409)
                 .body(ApiResponse.error("E409", e.getMessage()));
     }
-}
+
+    }
+
