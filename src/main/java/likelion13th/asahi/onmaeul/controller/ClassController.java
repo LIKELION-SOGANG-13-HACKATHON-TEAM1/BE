@@ -1,6 +1,7 @@
 package likelion13th.asahi.onmaeul.controller;
 
 import jakarta.validation.Payload;
+import likelion13th.asahi.onmaeul.config.auth.CustomUserDetails;
 import likelion13th.asahi.onmaeul.domain.ClassStatus;
 import likelion13th.asahi.onmaeul.domain.User;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
@@ -44,7 +45,7 @@ public class ClassController {
     }
 
     @PostMapping("/{class_id}/participants")
-    public ResponseEntity<ApiResponse<ClazzParticipatePayload>> applyClass(@PathVariable("class_id") Long id, @AuthenticationPrincipal User user){
+    public ResponseEntity<ApiResponse<ClazzParticipatePayload>> applyClass(@PathVariable("class_id") Long id, @AuthenticationPrincipal CustomUserDetails user){
         ApiResponse<ClazzParticipatePayload> payload=classService.applyClass(id,user.getId());
         return ResponseEntity.ok(payload);
     }

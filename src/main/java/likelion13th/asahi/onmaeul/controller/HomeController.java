@@ -1,5 +1,6 @@
 package likelion13th.asahi.onmaeul.controller;
 
+import likelion13th.asahi.onmaeul.config.auth.CustomUserDetails;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
 import likelion13th.asahi.onmaeul.dto.response.home.GuestHomePayload;
 import likelion13th.asahi.onmaeul.dto.response.home.HomeAction;
@@ -21,7 +22,7 @@ public class HomeController {
 
 
     @GetMapping
-    public ResponseEntity<ApiResponse<? extends HomePayload>> getHome(@AuthenticationPrincipal User user){
+    public ResponseEntity<ApiResponse<? extends HomePayload>> getHome(@AuthenticationPrincipal CustomUserDetails user){
         //guest용
         if (user==null) {
             GuestHomePayload payload = GuestHomePayload.builder()

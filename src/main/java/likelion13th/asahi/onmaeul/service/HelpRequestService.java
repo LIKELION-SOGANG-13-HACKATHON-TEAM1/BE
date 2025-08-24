@@ -1,4 +1,5 @@
 package likelion13th.asahi.onmaeul.service;
+import likelion13th.asahi.onmaeul.config.auth.CustomUserDetails;
 import likelion13th.asahi.onmaeul.domain.HelpRequest;
 
 import jakarta.transaction.Transactional;
@@ -70,9 +71,8 @@ var last = helpRequests.get(helpRequests.size() - 1); //helpRequestItem 속 마�
                             .location(e.getLocation())
                             .requestTime(e.getRequestTime().toString())
                             .createdAt(e.getCreatedAt().toString())
-                            .status(e.getStatus().toString())
+                            .category(e.getCategory())
                             .route("/help-requests/" + e.getId())
-                            .uiFlags(new HelpRequestItem.UiFlags(canAccept))
                             .build();
                 })
                 .toList();
@@ -106,9 +106,8 @@ var last = helpRequests.get(helpRequests.size() - 1); //helpRequestItem 속 마�
                             .location(e.getLocation())
                             .requestTime(e.getRequestTime().toString())
                             .createdAt(e.getCreatedAt().toString())
-                            .status(e.getStatus().toString())
+                            .category(e.getCategory())
                             .route("/help-requests/" + e.getId())
-                            .uiFlags(new HelpRequestItem.UiFlags(canAccept))
                             .build();
 
                 })
@@ -125,7 +124,7 @@ var last = helpRequests.get(helpRequests.size() - 1); //helpRequestItem 속 마�
         return ok("도움 요청 리스트 검색 성공",helpRequestPayload);
     }
 
-    public ApiResponse<HelpRequestArticlePayload> findArticle(long id, User user) {
+    public ApiResponse<HelpRequestArticlePayload> findArticle(long id, CustomUserDetails user) {
         //repository에서 id에 맞는 HelpRequest 가져오기
         HelpRequest helprequest=helpRequestRepository.findById(id)
                 .orElseThrow(()->new IllegalArgumentException("not found: "+id));
@@ -139,7 +138,9 @@ var last = helpRequests.get(helpRequests.size() - 1); //helpRequestItem 속 마�
                 .requestTime(helprequest.getRequestTime().toString())
                 .images(helprequest.getImages())
                 .status(helprequest.getStatus().toString())
-                .createdAt(helprequest.getCreatedAt().toString());
+                .createdAt(helprequest.getCreatedAt().toString())
+                .categoryId(helprequest.getCategory().getId())
+                .categoryName(helprequest.getCategory().getName());
 
         //user가 senior인지 확인
         boolean isSenior=helprequest.getRequester().getId().equals(user.getId());
@@ -179,7 +180,7 @@ var last = helpRequests.get(helpRequests.size() - 1); //helpRequestItem 속 마�
 
     //요청게시글 삭제하기
     // 로그인 기능 개발 후 작성자가 맞는지 확인 코드 작성 필요
-    public ApiResponse<DeletePayload> deleteArticle(long id, User user){
+    public ApiResponse<DeletePayload> deleteArticle(long id, CustomUserDetails user){
         HelpRequest helpRequest = helpRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("not found: " + id));
         authorizeArticleAuthor(helpRequest);
@@ -197,7 +198,7 @@ var last = helpRequests.get(helpRequests.size() - 1); //helpRequestItem 속 마�
     }
 
     @Transactional
-    public ApiResponse<UpdatePayload> patch(long id, User user, UpdateRequest updateRequest){
+    public ApiResponse<UpdatePayload> patch(long id, CustomUserDetails user, UpdateRequest updateRequest){
         HelpRequest helpRequest=helpRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("not found: " + id));
         authorizeArticleAuthor(helpRequest);

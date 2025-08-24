@@ -1,6 +1,7 @@
 package likelion13th.asahi.onmaeul.dto.response.helpRequest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import likelion13th.asahi.onmaeul.domain.Category;
 import likelion13th.asahi.onmaeul.domain.HelpRequest;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,18 +26,7 @@ public class HelpRequestItem {
 
     @JsonProperty("created_at")
     private String createdAt;
-    private String status;
+    private Category category;
     private String route;
-
-    @JsonProperty("ui_flags")
-    private UiFlags uiFlags;
-
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Data
-    public static class UiFlags{
-        @JsonProperty("can_accept")
-        private boolean canAccept;
-    }
 
 }

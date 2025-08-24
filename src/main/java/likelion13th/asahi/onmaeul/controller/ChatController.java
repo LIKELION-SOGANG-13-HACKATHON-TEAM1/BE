@@ -48,14 +48,14 @@ public class ChatController {
     }
 
     @PatchMapping("/draft")
-    public ResponseEntity<ApiResponse<DraftResponsePayload>> patchForm(@AuthenticationPrincipal User user,
+    public ResponseEntity<ApiResponse<DraftResponsePayload>> patchForm(@AuthenticationPrincipal CustomUserDetails user,
                                                                        @RequestBody DraftRequest draftRequest){
         ApiResponse<DraftResponsePayload> payload= chatService.update(draftRequest);
         return ResponseEntity.ok(payload);
     }
 
     @PostMapping("/finalize")
-    public ResponseEntity<ApiResponse<FinalChatResponsePayload>> createArticle(@AuthenticationPrincipal User user, @RequestBody FinalChatRequest finalChatRequest){
+    public ResponseEntity<ApiResponse<FinalChatResponsePayload>> createArticle(@AuthenticationPrincipal CustomUserDetails user, @RequestBody FinalChatRequest finalChatRequest){
         ApiResponse<FinalChatResponsePayload> payload=chatService.createArticle(finalChatRequest,user);
         return ResponseEntity.ok(payload);
     }
