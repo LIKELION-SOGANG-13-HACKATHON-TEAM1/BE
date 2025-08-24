@@ -89,6 +89,9 @@ public class WebSecurityConfig {
                         .requestMatchers("/request/{request_id}/**").hasAuthority("SENIOR")
                         .anyRequest().authenticated()
                 )*/
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()
+                )
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint((request, response, authException) -> response.setStatus(401))
                 )

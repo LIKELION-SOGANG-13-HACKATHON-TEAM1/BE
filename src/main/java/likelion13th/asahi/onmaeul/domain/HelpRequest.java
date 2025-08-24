@@ -1,5 +1,6 @@
 package likelion13th.asahi.onmaeul.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import likelion13th.asahi.onmaeul.dto.request.UpdateRequest;
 import lombok.*;
@@ -52,6 +53,9 @@ public class HelpRequest {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private java.time.OffsetDateTime createdAt;
+
+    @JsonProperty("estimated_time_in_minutes")
+    private Integer estimatedTimeInMinutes;
 
     @ElementCollection
     @CollectionTable(name = "help_request_images", joinColumns = @JoinColumn(name = "helprequest_id"))
