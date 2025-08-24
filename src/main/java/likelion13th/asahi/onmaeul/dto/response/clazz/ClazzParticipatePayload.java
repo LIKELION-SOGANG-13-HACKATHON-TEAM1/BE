@@ -9,6 +9,6 @@ import lombok.Data;
 public class ClazzParticipatePayload {
     @JsonProperty("class_id")
     private Long classId;
-    @JsonProperty("host_id")
-    private Long hostId;
+    @JsonProperty("host_name")
+    private String hostName;
 }
