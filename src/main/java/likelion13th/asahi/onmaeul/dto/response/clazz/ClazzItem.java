@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Builder
 @Data
 public class ClazzItem {
     private Long id;
     private String title;
-    private String schedule;
+    private LocalDateTime schedule;
     @JsonProperty("host_name")
     private String hostName;
     private String status;

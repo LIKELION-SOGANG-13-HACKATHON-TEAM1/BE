@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -20,5 +21,5 @@ public class ClazzArticlePayload {
     @JsonProperty("created_at")
     private String createdAt;
     private String status;
-    private String schedule;
+    private LocalDateTime schedule;
 }
