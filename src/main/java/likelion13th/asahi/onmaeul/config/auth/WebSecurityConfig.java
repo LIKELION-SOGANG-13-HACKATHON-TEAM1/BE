@@ -63,8 +63,8 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource(CorsProperties props) {
         CorsConfiguration configuration = new CorsConfiguration();
-        List<String> origins = props.getAllowedOrigins(); // YAML 리스트가 여기로 바인딩!!
-        configuration.setAllowedOrigins(origins);
+        List<String> origins = props.getAllowedOrigins(); // ✅ YAML 리스트가 여기로 바인딩
+        configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
@@ -86,7 +86,7 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/home","/signup", "/login", "/public/**","/css/**","/js/**","/images/**","/favicon.ico","/error").permitAll()
-                        .requestMatchers("/request/**").hasAuthority("SENIOR")
+                        .requestMatchers("/request/{request_id}/**").hasAuthority("SENIOR")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(e -> e
