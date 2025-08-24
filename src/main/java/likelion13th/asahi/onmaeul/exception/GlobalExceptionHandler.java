@@ -1,6 +1,7 @@
 package likelion13th.asahi.onmaeul.exception;
 
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -57,5 +58,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<?> handle400(BadRequestException e) {
+        return ResponseEntity.status(400)
+                .body(ApiResponse.error("E400", e.getMessage()));
     }
 
+}
