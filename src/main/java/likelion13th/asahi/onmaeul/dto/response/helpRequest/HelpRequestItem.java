@@ -26,7 +26,7 @@ public class HelpRequestItem {
 
     @JsonProperty("created_at")
     private String createdAt;
-    private Category category;
+    private String category;
     private String route;
 
 }
