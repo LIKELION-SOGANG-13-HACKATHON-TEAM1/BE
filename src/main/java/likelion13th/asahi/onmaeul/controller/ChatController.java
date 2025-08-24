@@ -19,6 +19,7 @@ import likelion13th.asahi.onmaeul.dto.response.chat.FinalChatResponsePayload;
 
 import likelion13th.asahi.onmaeul.service.ChatService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,6 +28,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/chat")
@@ -55,8 +57,14 @@ public class ChatController {
             @AuthenticationPrincipal CustomUserDetails me,
             @RequestBody ChatRequest request
     ) {
-        ChatResponsePayload data = chatService.processChatMessage(request);
-        return ResponseEntity.ok(ApiResponse.ok("메시지 처리 성공", data));
+        try {
+            ChatResponsePayload data = chatService.processChatMessage(request);
+            return ResponseEntity.ok(ApiResponse.ok("메시지 처리 성공", data));
+        } catch (Exception e) {
+            log.error("processChatMessages() 실패", e); // 스택트레이스 강제 출력
+            return ResponseEntity.internalServerError()
+                    .body(ApiResponse.error("S500", e.getClass().getSimpleName()+": "+String.valueOf(e.getMessage())));
+        }
     }
 
     @PatchMapping("/draft")
