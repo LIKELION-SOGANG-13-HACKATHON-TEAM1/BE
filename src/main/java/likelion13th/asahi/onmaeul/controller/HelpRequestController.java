@@ -29,7 +29,7 @@ public class HelpRequestController {
     private final GuestHomeProps guestHomeProps;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<? extends HomePayload>> getMain(@RequestParam(defaultValue = "5") int limitFeed,
+    public ResponseEntity<ApiResponse<HelpRequestPayload>> getMain(@RequestParam(defaultValue = "5") int limitFeed,
                                                                       @RequestParam(required = false) String nextCursor, @AuthenticationPrincipal CustomUserDetails user ){
 
         ApiResponse<HelpRequestPayload> payload=helpRequestService.findMain(nextCursor,HelpRequestStatus.PENDING,user.getRole(),limitFeed);
