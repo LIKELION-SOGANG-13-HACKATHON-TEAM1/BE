@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -51,9 +52,7 @@ public class ChatService {
     private final OpenAiService openAiService;
     private final ObjectMapper objectMapper;
     private final RedisTemplate<String, Object> redisTemplate;
-    // ✅ 세션 폼은 문자열 템플릿만 사용
-    @Qualifier("stringRedisTemplate")
-    private final RedisTemplate<String, String> stringRedisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
 
     // ===== 도움요청 저장 관련 의존성 =====
     private final HelpRequestRepository helpRequestRepository;
