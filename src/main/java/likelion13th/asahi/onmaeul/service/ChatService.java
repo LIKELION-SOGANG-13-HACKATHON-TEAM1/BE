@@ -82,6 +82,7 @@ public class ChatService {
     }
 
     /** 채팅 메시지 처리 및 응답 생성 */
+    // 기존 메서드 전체 교체
     public ChatResponsePayload processChatMessage(ChatRequest chatRequest) {
         String sessionId = chatRequest.getSessionId();
         ChatResponsePayload.CollectedForm currentForm = null;
@@ -91,8 +92,7 @@ public class ChatService {
             currentForm = getFormFromRedis(sessionId);
         } catch (Exception e) {
             log.error("Redis에서 세션 로드 중 오류 발생: {}", sessionId, e);
-            // 복구를 위해 새로운 세션으로 진행
-            sessionId = UUID.randomUUID().toString();
+            sessionId = UUID.randomUUID().toString(); // 복구를 위해 새 세션
         }
         // 2) 세션 초기화
         if (currentForm == null) {
@@ -106,26 +106,45 @@ public class ChatService {
         log.debug("LLM prompt content: {}", prompt);
 
         // 4) OpenAI 호출
-        String llmResponseJson = null;
+        String llmRaw = null;
+        String jsonText = null;
         try {
             var chatCompletionResponse = openAiService.createChatCompletion(
                     ChatCompletionRequest.builder()
                             .model(modelName)
-                            .messages(List.of(new ChatMessage("user", prompt)))
-                            .temperature(0.7)
+                            .messages(List.of(
+                                    // ✅ 출력 규칙은 system에 넣어서 강하게 고정
+                                    new ChatMessage(ChatMessageRole.SYSTEM.value(),
+                                            "You are the Onmaeul assistant. " +
+                                                    "Output ONLY valid JSON. No code fences, no explanations, no extra text. " +
+                                                    "All string values (e.g., bot_reply, title, description, location) MUST be in Korean and use polite speech. " +
+                                                    "Schema: { \"data\": {\"category_id\": null|number, \"title\": null|string, \"description\": null|string, " +
+                                                    "\"location\": null|string, \"location_detail\": null|string, \"phone_number\": null|string, " +
+                                                    "\"request_time\": null|string, \"images\": []}, \"missing_fields\": [], " +
+                                                    "\"bot_reply\": string, \"action\": \"ASK|CONFIRM|CREATE|REVISE\" }"
+                                    ),
+                                    // 사용자 컨텍스트는 user에
+                                    new ChatMessage(ChatMessageRole.USER.value(), prompt)
+                            ))
+                            .temperature(0.2) // 일탈 최소화
+                            .maxTokens(600)
                             .build()
             );
 
-            // 4-1) 응답 객체 유효성 검사
-            if (chatCompletionResponse == null || chatCompletionResponse.getChoices() == null || chatCompletionResponse.getChoices().isEmpty()) {
+            if (chatCompletionResponse == null
+                    || chatCompletionResponse.getChoices() == null
+                    || chatCompletionResponse.getChoices().isEmpty()) {
                 throw new IllegalStateException("OpenAI로부터 유효한 응답을 받지 못했습니다. 빈 응답입니다.");
             }
 
-            llmResponseJson = chatCompletionResponse.getChoices().get(0).getMessage().getContent();
-            log.info("Received LLM response: {}", llmResponseJson);
+            llmRaw = chatCompletionResponse.getChoices().get(0).getMessage().getContent();
+            log.info("Received LLM response: {}", llmRaw);
+
+            // ✅ 코드펜스/군더더기 제거 → JSON만 추출
+            jsonText = extractJsonBlock(llmRaw);
+            log.debug("Sanitized LLM JSON: {}", jsonText);
 
         } catch (Exception e) {
-            // API 호출 실패 시 구체적인 오류 로그를 남기고, 사용자에게 안내 메시지 반환
             log.error("OpenAI API 호출 중 오류 발생: {}", e.getMessage(), e);
             return ChatResponsePayload.builder()
                     .session_id(sessionId)
@@ -137,19 +156,23 @@ public class ChatService {
                     .build();
         }
 
-        // 5) 파싱/업데이트
+        // 5) 파싱/업데이트 (정제된 JSON 사용)
         ChatResponsePayload.CollectedForm updatedForm;
         try {
-            updatedForm = parseLlmResponse(llmResponseJson, currentForm);
+            updatedForm = parseLlmResponse(jsonText, currentForm); // ← 여기!
             log.info("Parsed and updated form: {}", updatedForm);
         } catch (Exception e) {
-            // 파싱 오류 발생 시 구체적인 로그를 남김
-            log.error("LLM 응답 JSON 파싱 중 오류 발생: {} (원본 JSON: {})", e.getMessage(), llmResponseJson, e);
+            log.error("LLM 응답 JSON 파싱 중 오류 발생: {} (원본 JSON: {})", e.getMessage(), llmRaw, e);
+
+            // UX 개선: 사과문 대신 누락 필드 기반 질문으로 이어가기
+            List<String> missing = getMissingFields(currentForm);
+            String fallbackReply = generateBotReply(currentForm, missing.isEmpty(), "{\"bot_reply\":\"\"}");
+
             return ChatResponsePayload.builder()
                     .session_id(sessionId)
-                    .bot_reply("죄송합니다. 챗봇 응답 처리 중 문제가 발생했습니다. 다시 시도해 주세요.")
+                    .bot_reply(fallbackReply)
                     .collected(currentForm)
-                    .missing_fields(getMissingFields(currentForm))
+                    .missing_fields(missing)
                     .can_finish(false)
                     .session_ttl_seconds(1800)
                     .build();
@@ -166,14 +189,14 @@ public class ChatService {
         List<String> missingFields = getMissingFields(updatedForm);
         boolean canFinish = missingFields.isEmpty();
 
-        // 8) action 분기
-        String action = extractAction(llmResponseJson);
+        // 8) action 분기 (정제된 JSON 사용)
+        String action = extractAction(jsonText); // ← 여기!
         String botReply;
         if ("CREATE".equalsIgnoreCase(action) && canFinish) {
             botReply = buildSummary(updatedForm);
         } else if ("CONFIRM".equalsIgnoreCase(action) && canFinish) {
             try {
-                JsonNode r = objectMapper.readTree(llmResponseJson);
+                JsonNode r = objectMapper.readTree(jsonText); // ← 여기!
                 JsonNode br = r.get("bot_reply");
                 botReply = (br != null && !br.isNull() && !br.asText().isBlank())
                         ? br.asText()
@@ -184,7 +207,7 @@ public class ChatService {
         } else if ("REVISE".equalsIgnoreCase(action)) {
             botReply = "어느 항목을 수정하시겠어요? (카테고리/장소/시간/제목/내용)";
         } else {
-            botReply = generateBotReply(updatedForm, canFinish, llmResponseJson);
+            botReply = generateBotReply(updatedForm, canFinish, jsonText); // ← 여기!
         }
 
         return ChatResponsePayload.builder()
@@ -227,7 +250,9 @@ public class ChatService {
         StringBuilder sb = new StringBuilder();
         sb.append("당신은 '온마을' 서비스의 챗봇입니다. ")
                 .append("사용자는 어르신이므로, 존댓말과 쉬운 단어로 응답하세요. ")
-                .append("도움 요청글에 필요한 정보를 추출하고 누락된 정보는 한 번에 하나씩 질문하세요.\n");
+                .append("도움 요청글에 필요한 정보를 추출하고 누락된 정보는 한 번에 하나씩 질문하세요.\n")
+                .append("반드시 유효한 JSON만 응답하세요. 코드펜스( ``` )나 추가 설명을 절대 붙이지 마세요.\n");
+        ;
 
         sb.append("아래 JSON 형식으로만 응답하세요:\n")
                 .append("{\n")
@@ -289,6 +314,19 @@ public class ChatService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    // ChatService.java (클래스 내부, 다른 private 메서드들과 같은 위치)
+    private String extractJsonBlock(String raw) {
+        if (raw == null) return null;
+        String t = raw.trim();
+        if (t.startsWith("```")) {
+            t = t.replaceFirst("(?s)^```[a-zA-Z]*\\s*", "");
+            t = t.replaceFirst("(?s)\\s*```\\s*$", "");
+            t = t.trim();
+        }
+        int s = t.indexOf('{'), e = t.lastIndexOf('}');
+        return (s >= 0 && e > s) ? t.substring(s, e + 1) : t;
     }
 
     private List<String> getMissingFields(ChatResponsePayload.CollectedForm form) {
