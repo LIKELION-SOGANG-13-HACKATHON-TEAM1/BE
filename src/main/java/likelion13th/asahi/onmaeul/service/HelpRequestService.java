@@ -45,14 +45,8 @@ public class HelpRequestService {
             if (nextCursor == null || nextCursor.isBlank()) {
                 helpRequests = helpRequestRepository.findTop5ByStatusOrderByCreatedAtDescIdDesc(status);
             } else {
-                // 커서 디코딩 실패는 클라이언트 오류이므로, 400 에러를 던지도록 수정
-                try {
                     var c = CursorUtil.decode(nextCursor);
                     helpRequests = helpRequestRepository.findNextPageByStatus(status, c.createdAt(), c.id(), pageable);
-                } catch (Exception e) {
-                    // GlobalExceptionHandler가 이 예외를 잡아 400 응답을 생성할 수 있음
-                    throw new IllegalArgumentException("잘못된 형식의 커서입니다.", e);
-                }
             }
 
             boolean hasMore = helpRequests.size() > limit;
@@ -88,9 +82,6 @@ public class HelpRequestService {
 
             return ok("도움 요청 리스트 조회 성공", helpRequestPayload);
 
-        } catch (IllegalArgumentException e) {
-            // 위에서 던진 IllegalArgumentException을 다시 던져서 400으로 처리되도록 함
-            throw e;
         } catch (Exception e) {
             // 그 외 모든 예상치 못한 예외는 500 에러의 원인을 파악하기 위해 RuntimeException으로 감싸서 던짐
             throw new RuntimeException("메인 리스트 조회 중 예상치 못한 서버 오류가 발생했습니다.", e);
