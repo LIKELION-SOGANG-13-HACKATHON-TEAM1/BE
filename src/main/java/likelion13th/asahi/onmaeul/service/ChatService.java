@@ -194,19 +194,29 @@ public class ChatService {
                 .build();
     }
 
-    // Redis 세션 로드
+    // 로드 (핵심: convertValue로 타입 고정)
     private ChatResponsePayload.CollectedForm getFormFromRedis(String sessionId) {
         if (sessionId == null) return null;
-        Object formObject = redisTemplate.opsForValue().get("chat:session:" + sessionId);
-        if (formObject instanceof ChatResponsePayload.CollectedForm) {
-            return (ChatResponsePayload.CollectedForm) formObject;
+        try {
+            String key = "chat:session:" + sessionId;
+            Object obj = redisTemplate.opsForValue().get(key);
+            if (obj == null) return null;
+            // obj가 LinkedHashMap이어도 아래가 CollectedForm으로 변환해줍니다.
+            return objectMapper.convertValue(obj, ChatResponsePayload.CollectedForm.class);
+        } catch (Exception e) {
+            log.error("Redis load error: key={}, err={}", sessionId, e.toString(), e);
+            return null;
         }
-        return null;
     }
 
-    // Redis 세션 저장 (TTL 30분)
+    // 저장
     private void saveFormToRedis(String sessionId, ChatResponsePayload.CollectedForm form) {
-        redisTemplate.opsForValue().set("chat:session:" + sessionId, form, Duration.ofSeconds(1800));
+        try {
+            String key = "chat:session:" + sessionId;
+            redisTemplate.opsForValue().set(key, form, Duration.ofSeconds(1800));
+        } catch (Exception e) {
+            log.error("Redis save error: key={}, err={}", sessionId, e.toString(), e);
+        }
     }
 
     private String buildPromptForLLM(ChatRequest request, ChatResponsePayload.CollectedForm currentForm) {
