@@ -84,13 +84,10 @@ public class WebSecurityConfig {
                 .securityContext(sc -> sc.requireExplicitSave(false))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .csrf(csrf -> csrf.disable())
-                /*.authorizeHttpRequests(auth -> auth
+                .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/home ","/signup", "/login", "/public/**","/css/**","/js/**","/images/**","/favicon.ico","/error").permitAll()
                         .requestMatchers("/request/{request_id}/**").hasAuthority("SENIOR")
                         .anyRequest().authenticated()
-                )*/
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
                 )
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint((request, response, authException) -> response.setStatus(401))
