@@ -81,7 +81,7 @@ public class RequestService {
                         .acceptedRequests(acceptedRequests)
                         .build();
             }
-        } else if ("JUNIOR".equals(user.getRole())) {
+        } else if (UserRole.JUNIOR.equals(user.getRole())) {
             List<Match> matches = matchRepository.findByResponserAndHelpRequestStatus(
                     userId,
                     List.of(HelpRequestStatus.MATCHED, HelpRequestStatus.IN_PROGRESS)
@@ -160,7 +160,7 @@ public class RequestService {
             } else {
                 builder.actions(getSeniorActionsForPending(request.getStatus()));
             }
-        } else if (UserRole.JUNIOR.equals(userRepository.findById(userId).get().getRole())) {
+        } else if (UserRole.JUNIOR.equals(user.getRole())) {
             // 청년용 DTO 구성: 어르신 정보만 담음!! (본인 정보와 버튼은 제외)
             User senior = request.getRequester();
             builder.seniorInfo(SeniorInfo.from(senior));

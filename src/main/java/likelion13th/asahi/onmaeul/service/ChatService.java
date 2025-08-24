@@ -26,6 +26,7 @@ import likelion13th.asahi.onmaeul.repository.CategoryRepository;
 import likelion13th.asahi.onmaeul.repository.HelpRequestRepository;
 import likelion13th.asahi.onmaeul.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,6 +41,7 @@ import java.util.UUID;
 
 import static likelion13th.asahi.onmaeul.dto.response.ApiResponse.ok;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatService {
@@ -82,7 +84,6 @@ public class ChatService {
 
         // 1) 세션 로드
         ChatResponsePayload.CollectedForm currentForm = getFormFromRedis(sessionId);
-
         // 2) 세션 초기화
         if (currentForm == null) {
             sessionId = UUID.randomUUID().toString();
@@ -91,6 +92,7 @@ public class ChatService {
 
         // 3) 프롬프트 생성
         String prompt = buildPromptForLLM(chatRequest, currentForm);
+        log.debug("LLM prompt size={}, modelName={}", prompt.length(), modelName);
 
         // 4) OpenAI 호출
         String llmResponseJson = openAiService.createChatCompletion(
@@ -115,8 +117,6 @@ public class ChatService {
         String action = extractAction(llmResponseJson);
         String botReply;
         if ("CREATE".equalsIgnoreCase(action) && canFinish) {
-            // ⚠️ 원래 네 코드: helpRequestService.create(updatedForm)
-            // 여기서는 컴파일 안전을 위해 CONFIRM 흐름처럼 동작시킴.
             botReply = buildSummary(updatedForm);
         } else if ("CONFIRM".equalsIgnoreCase(action) && canFinish) {
             try {

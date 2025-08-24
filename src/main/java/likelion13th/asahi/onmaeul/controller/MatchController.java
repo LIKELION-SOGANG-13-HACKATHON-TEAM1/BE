@@ -3,6 +3,7 @@ package likelion13th.asahi.onmaeul.controller;
 import likelion13th.asahi.onmaeul.config.auth.CustomUserDetails;
 import likelion13th.asahi.onmaeul.dto.request.AcceptMatchRequest;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
+import likelion13th.asahi.onmaeul.exception.UnauthorizedException;
 import likelion13th.asahi.onmaeul.service.MatchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ public class MatchController {
             @AuthenticationPrincipal CustomUserDetails me,
             @RequestBody AcceptMatchRequest request
     ) {
+        if (me == null) throw new UnauthorizedException("로그인이 필요합니다."); // 401로 매핑
         matchService.acceptHelpRequest(request.getHelpRequestId(), me.getId());
         return ResponseEntity.ok(ApiResponse.ok("도움 요청 수락 성공", null));
     }
