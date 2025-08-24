@@ -81,9 +81,16 @@ public class ChatService {
     /** 채팅 메시지 처리 및 응답 생성 */
     public ChatResponsePayload processChatMessage(ChatRequest chatRequest) {
         String sessionId = chatRequest.getSessionId();
+        ChatResponsePayload.CollectedForm currentForm = null;
 
         // 1) 세션 로드
-        ChatResponsePayload.CollectedForm currentForm = getFormFromRedis(sessionId);
+        try {
+            currentForm = getFormFromRedis(sessionId);
+        } catch (Exception e) {
+            log.error("Redis에서 세션 로드 중 오류 발생: {}", sessionId, e);
+            // 복구를 위해 새로운 세션으로 진행
+            sessionId = UUID.randomUUID().toString();
+        }
         // 2) 세션 초기화
         if (currentForm == null) {
             sessionId = UUID.randomUUID().toString();
@@ -92,28 +99,65 @@ public class ChatService {
 
         // 3) 프롬프트 생성
         String prompt = buildPromptForLLM(chatRequest, currentForm);
-        log.debug("LLM prompt size={}, modelName={}", prompt.length(), modelName);
+        log.info("LLM prompt size={}, modelName={}", prompt.length(), modelName);
+        log.debug("LLM prompt content: {}", prompt);
 
         // 4) OpenAI 호출
-        String llmResponseJson = openAiService.createChatCompletion(
-                ChatCompletionRequest.builder()
-                        .model(modelName)
-                        .messages(List.of(new ChatMessage("user", prompt)))
-                        .temperature(0.7)
-                        .build()
-        ).getChoices().get(0).getMessage().getContent();
+        String llmResponseJson = null;
+        try {
+            var chatCompletionResponse = openAiService.createChatCompletion(
+                    ChatCompletionRequest.builder()
+                            .model(modelName)
+                            .messages(List.of(new ChatMessage("user", prompt)))
+                            .temperature(0.7)
+                            .build()
+            );
 
-        // ⭐️ 추가된 로그: LLM 응답 내용 확인
-        log.info("Received LLM response: {}", llmResponseJson);
+            // 4-1) 응답 객체 유효성 검사
+            if (chatCompletionResponse == null || chatCompletionResponse.getChoices() == null || chatCompletionResponse.getChoices().isEmpty()) {
+                throw new IllegalStateException("OpenAI로부터 유효한 응답을 받지 못했습니다. 빈 응답입니다.");
+            }
+
+            llmResponseJson = chatCompletionResponse.getChoices().get(0).getMessage().getContent();
+            log.info("Received LLM response: {}", llmResponseJson);
+
+        } catch (Exception e) {
+            // API 호출 실패 시 구체적인 오류 로그를 남기고, 사용자에게 안내 메시지 반환
+            log.error("OpenAI API 호출 중 오류 발생: {}", e.getMessage(), e);
+            return ChatResponsePayload.builder()
+                    .session_id(sessionId)
+                    .bot_reply("죄송합니다. 현재 챗봇 서비스에 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.")
+                    .collected(currentForm)
+                    .missing_fields(getMissingFields(currentForm))
+                    .can_finish(false)
+                    .session_ttl_seconds(1800)
+                    .build();
+        }
 
         // 5) 파싱/업데이트
-        ChatResponsePayload.CollectedForm updatedForm = parseLlmResponse(llmResponseJson, currentForm);
-
-        // ⭐️ 추가된 로그: 파싱 후 업데이트된 폼 데이터 확인
-        log.info("Parsed and updated form: {}", updatedForm);
+        ChatResponsePayload.CollectedForm updatedForm;
+        try {
+            updatedForm = parseLlmResponse(llmResponseJson, currentForm);
+            log.info("Parsed and updated form: {}", updatedForm);
+        } catch (Exception e) {
+            // 파싱 오류 발생 시 구체적인 로그를 남김
+            log.error("LLM 응답 JSON 파싱 중 오류 발생: {} (원본 JSON: {})", e.getMessage(), llmResponseJson, e);
+            return ChatResponsePayload.builder()
+                    .session_id(sessionId)
+                    .bot_reply("죄송합니다. 챗봇 응답 처리 중 문제가 발생했습니다. 다시 시도해 주세요.")
+                    .collected(currentForm)
+                    .missing_fields(getMissingFields(currentForm))
+                    .can_finish(false)
+                    .session_ttl_seconds(1800)
+                    .build();
+        }
 
         // 6) 세션 저장
-        saveFormToRedis(sessionId, updatedForm);
+        try {
+            saveFormToRedis(sessionId, updatedForm);
+        } catch (Exception e) {
+            log.error("Redis에 세션 저장 중 오류 발생: {}", sessionId, e);
+        }
 
         // 7) 누락 필드 확인
         List<String> missingFields = getMissingFields(updatedForm);
