@@ -273,6 +273,7 @@ public class MyPageService {
                 .build();
     }
 
+    /** 내가 신청한 수업 목록 */
     @Transactional(readOnly = true)
     public ClassListPayload getAppliedClasses(Long userId, ClassStatus filterStatus) {
         var rows = classParticipantRepository.findAllWithClassByUser(userId);
@@ -302,6 +303,42 @@ public class MyPageService {
                             .build();
                 })
                 .filter(item -> filterStatus == null || item.getStatus() == filterStatus)
+                .toList();
+
+        return ClassListPayload.builder()
+                .filter_status(filterStatus)
+                .class_list(items)
+                .paging(PagingInfo.builder()
+                        .all(true)
+                        .count(items.size())
+                        .has_next(false)
+                        .next_cursor(null)
+                        .build())
+                .build();
+    }
+
+    /** 내가 개설한 수업 목록 (filter_status: OPEN/CLOSED/null) */
+    @Transactional(readOnly = true)
+    public ClassListPayload getOpenedClasses(Long meId, ClassStatus filterStatus) {
+        var rows = classRepository.findAllByHostId(meId);
+
+        List<ClassItemPayload> items = rows.stream()
+                .map(c -> {
+                    // LocalDateTime → "+09:00" 포함 문자열
+                    String scheduleStr = (c.getSchedule() == null) ? null :
+                            c.getSchedule().atZone(KST).toOffsetDateTime().format(ISO_OFFSET);
+
+                    return ClassItemPayload.builder()
+                            .id(c.getId())
+                            .title(c.getTitle())
+                            .host_id(c.getHostId())
+                            .host_name(c.getHost() != null ? c.getHost().getUsername() : null)
+                            .schedule(scheduleStr)
+                            .status(c.getStatus())       // OPEN | CLOSED
+                            .description(c.getDescription())
+                            .build();
+                })
+                .filter(it -> filterStatus == null || it.getStatus() == filterStatus)
                 .toList();
 
         return ClassListPayload.builder()

@@ -121,4 +121,15 @@ public class MyPageController {
         return ResponseEntity.ok(ApiResponse.ok("신청한 수업 목록 조회 성공", data));
     }
 
+    /** 개설한 수업 내역 보기 */
+    @PreAuthorize("hasAnyRole('SENIOR','JUNIOR')")
+    @GetMapping("/classCourse")
+    public ResponseEntity<ApiResponse<ClassListPayload>> getOpenedClasses(
+            @AuthenticationPrincipal CustomUserDetails me,
+            @RequestParam(name = "filter_status", required = false) ClassStatus filterStatus // 대문자: OPEN/CLOSED
+    ) {
+        ClassListPayload data = myPageService.getOpenedClasses(me.getId(), filterStatus);
+        return ResponseEntity.ok(ApiResponse.ok("개설한 수업 목록 조회 성공", data));
+    }
+
 }
