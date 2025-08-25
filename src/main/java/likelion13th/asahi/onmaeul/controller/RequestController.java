@@ -2,6 +2,7 @@ package likelion13th.asahi.onmaeul.controller;
 
 import likelion13th.asahi.onmaeul.config.auth.CustomUserDetails;
 import likelion13th.asahi.onmaeul.dto.request.UpdateRequest;
+import likelion13th.asahi.onmaeul.dto.response.requestTab.RequestCompletePayload;
 import likelion13th.asahi.onmaeul.dto.response.requestTab.RequestDetailPayload;
 import likelion13th.asahi.onmaeul.dto.response.requestTab.RequestStatusPayload;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
@@ -77,11 +78,12 @@ public class RequestController {
     // 도움 완료 API (어르신)
     @PreAuthorize("hasRole('SENIOR')")
     @PatchMapping("/{request_id}/complete")
-    public ResponseEntity<ApiResponse<Void>> completeHelpRequest(
+    public ResponseEntity<ApiResponse<RequestCompletePayload>> completeHelpRequest(
             @AuthenticationPrincipal CustomUserDetails me,
             @PathVariable("request_id") Long requestId
     ) {
-        requestService.completeHelpRequest(me.getId(), requestId);
-        return ResponseEntity.ok(ApiResponse.ok("도움이 완료되었습니다.", null));
+        RequestCompletePayload payload = requestService.completeHelpRequest(me.getId(), requestId);
+        // payload를 data에 넣어서 반환!!
+        return ResponseEntity.ok(ApiResponse.ok("도움이 완료되었습니다.", payload));
     }
 }
