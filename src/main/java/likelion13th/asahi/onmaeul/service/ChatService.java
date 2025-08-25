@@ -27,7 +27,6 @@ import likelion13th.asahi.onmaeul.repository.HelpRequestRepository;
 import likelion13th.asahi.onmaeul.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -84,19 +83,14 @@ public class ChatService {
     /** 채팅 메시지 처리 및 응답 생성 */
     // 기존 메서드 전체 교체
     public ChatResponsePayload processChatMessage(ChatRequest chatRequest) {
-        String sessionId = chatRequest.getSessionId();
-        ChatResponsePayload.CollectedForm currentForm = null;
 
-        // 1) 세션 로드
-        try {
-            currentForm = getFormFromRedis(sessionId);
-        } catch (Exception e) {
-            log.error("Redis에서 세션 로드 중 오류 발생: {}", sessionId, e);
-            sessionId = UUID.randomUUID().toString(); // 복구를 위해 새 세션
-        }
-        // 2) 세션 초기화
+        // 1) 세션 아이디 확정 2) 세션 상태 로드
+        String sessionId = (chatRequest.getSessionId() == null || chatRequest.getSessionId().isBlank())
+                ? UUID.randomUUID().toString()
+                : chatRequest.getSessionId();
+
+        ChatResponsePayload.CollectedForm currentForm = getFormFromRedis(sessionId);
         if (currentForm == null) {
-            sessionId = UUID.randomUUID().toString();
             currentForm = ChatResponsePayload.CollectedForm.builder().build();
         }
 
@@ -118,8 +112,12 @@ public class ChatService {
                                             "You are the Onmaeul assistant. " +
                                                     "Output ONLY valid JSON. No code fences, no explanations, no extra text. " +
                                                     "All string values (e.g., bot_reply, title, description, location) MUST be in Korean and use polite speech. " +
+                                                    "All timestamps MUST be ISO 8601 with timezone offset +09:00 (Asia/Seoul). " +
+                                                    "Example: \"2025-08-25T15:00:00+09:00\". " +
+                                                    "If the user provides a relative time (e.g., \"내일 오후 3시\"), convert it to ISO 8601 with +09:00; " +
+                                                    "if the date is missing, ask one follow-up question to clarify. " +
                                                     "Schema: { \"data\": {\"category_id\": null|number, \"title\": null|string, \"description\": null|string, " +
-                                                    "\"location\": null|string, \"location_detail\": null|string, \"phone_number\": null|string, " +
+                                                    "\"location\": null|string, \"location_detail\": null|string, " +
                                                     "\"request_time\": null|string, \"images\": []}, \"missing_fields\": [], " +
                                                     "\"bot_reply\": string, \"action\": \"ASK|CONFIRM|CREATE|REVISE\" }"
                                     ),
@@ -190,13 +188,29 @@ public class ChatService {
         boolean canFinish = missingFields.isEmpty();
 
         // 8) action 분기 (정제된 JSON 사용)
-        String action = extractAction(jsonText); // ← 여기!
+        String action = extractAction(jsonText);
         String botReply;
         if ("CREATE".equalsIgnoreCase(action) && canFinish) {
+            // 여기서 초안 저장 !!!!
+            saveDraft(sessionId, updatedForm);
+
+            // 요약 멘트(원하면 유지)
             botReply = buildSummary(updatedForm);
-        } else if ("CONFIRM".equalsIgnoreCase(action) && canFinish) {
+
+            // ★ 응답에 action 같이 내려서 프론트가 바로 finalize 호출하게
+            return ChatResponsePayload.builder()
+                    .session_id(sessionId)
+                    .bot_reply(botReply)
+                    .collected(updatedForm)
+                    .missing_fields(missingFields)
+                    .can_finish(true)
+                    .session_ttl_seconds(1800)
+                    .action("CREATE")
+                    .build();
+        }
+        else if ("CONFIRM".equalsIgnoreCase(action) && canFinish) {
             try {
-                JsonNode r = objectMapper.readTree(jsonText); // ← 여기!
+                JsonNode r = objectMapper.readTree(jsonText);
                 JsonNode br = r.get("bot_reply");
                 botReply = (br != null && !br.isNull() && !br.asText().isBlank())
                         ? br.asText()
@@ -207,7 +221,7 @@ public class ChatService {
         } else if ("REVISE".equalsIgnoreCase(action)) {
             botReply = "어느 항목을 수정하시겠어요? (카테고리/장소/시간/제목/내용)";
         } else {
-            botReply = generateBotReply(updatedForm, canFinish, jsonText); // ← 여기!
+            botReply = generateBotReply(updatedForm, canFinish, jsonText);
         }
 
         return ChatResponsePayload.builder()
@@ -217,6 +231,7 @@ public class ChatService {
                 .missing_fields(missingFields)
                 .can_finish(canFinish)
                 .session_ttl_seconds(1800)
+                .action(action)
                 .build();
     }
 
@@ -251,9 +266,16 @@ public class ChatService {
         sb.append("당신은 '온마을' 서비스의 챗봇입니다. ")
                 .append("사용자는 어르신이므로, 존댓말과 쉬운 단어로 응답하세요. ")
                 .append("도움 요청글에 필요한 정보를 추출하고 누락된 정보는 한 번에 하나씩 질문하세요.\n")
-                .append("반드시 유효한 JSON만 응답하세요. 코드펜스( ``` )나 추가 설명을 절대 붙이지 마세요.\n");
+                .append("반드시 유효한 JSON만 응답하세요. 코드펜스( ``` )나 추가 설명을 절대 붙이지 마세요.\n")
+                .append("작성 지침(요약/정제):\n")
+                .append("- 사용자의 원문을 그대로 복사하지 말고, 맞춤법을 보정해 핵심만 간결하게 재작성하세요.\n")
+                .append("- title 은 20자 내외의 간결한 존댓말 명령형으로 작성하세요. 예: \"은행 앱 설치 도와주세요\".\n")
+                .append("- description 은 2~3문장으로 목적/상황/필요한 도움을 정리하고, 불필요한 감탄사·중복·속어는 제거하세요.\n")
+                .append("- 시간·장소·기기는 구체적으로 적되, 어려운 전문 용어·영어는 쉬운 말로 풀어쓰세요.\n")
+                .append("- 상대시간(예: 내일 오후 3시)은 Asia/Seoul 기준 ISO 8601(+09:00)으로 변환하세요. 모호하면 한 번만 되물어보세요.\n")
+                .append("- 전화번호는 매칭 후 자동 공유되므로 절대 묻지 마세요. missing_fields 에 phone_number 를 넣지 마세요.\n")
+                .append("- 추가 질문이 필요할 때는 한 번에 하나의 짧은 질문만 하세요.\n");
         ;
-
         sb.append("아래 JSON 형식으로만 응답하세요:\n")
                 .append("{\n")
                 .append("  \"data\": {\n")
@@ -380,6 +402,30 @@ public class ChatService {
         return "알겠습니다. 다른 정보를 알려주세요.";
     }
 
+    private static final Duration DRAFT_TTL = Duration.ofSeconds(1800);
+    private void saveDraft(String sessionId, ChatResponsePayload.CollectedForm f) {
+        try {
+            ChatDraft draft = new ChatDraft();
+            draft.setSessionId(sessionId);
+            draft.setTitle(f.getTitle());
+            draft.setDescription(f.getDescription());
+            draft.setLocation(f.getLocation());
+            draft.setLocationDetail(f.getLocation_detail());
+            draft.setRequestTime(f.getRequest_time());
+            draft.setImages(f.getImages());
+            // category_id 타입 맞춰서
+            if (f.getCategory_id() != null) {
+                draft.setCategoryId(f.getCategory_id().longValue());
+            }
+
+            String key = "chat:draft:v1:" + sessionId; // ★ 드래프트 전용 키
+            String json = objectMapper.writeValueAsString(draft);
+            stringRedisTemplate.opsForValue().set(key, json, DRAFT_TTL);
+        } catch (Exception e) {
+            log.error("saveDraft error: sid={}, err={}", sessionId, e.toString(), e);
+        }
+    }
+
     // =======================
     // B. 초안 업데이트 & 최종화
     // =======================
@@ -387,13 +433,34 @@ public class ChatService {
     @Transactional
     public ApiResponse<DraftResponsePayload> update(DraftRequest updateDto) {
         String sessionId = updateDto.getSessionId();
+        if (sessionId == null || sessionId.isBlank()) {
+            throw new IllegalArgumentException("sessionId가 없습니다.");
+        }
 
-        ChatDraft existingDraft = (ChatDraft) redisTemplate.opsForValue().get(sessionId);
-        updateDraftFromDto(existingDraft, updateDto);
-        redisTemplate.opsForValue().set(sessionId, existingDraft);
+        String key = "chat:draft:v1:" + sessionId;
+        try {
+            String json = stringRedisTemplate.opsForValue().get(key);
 
-        DraftResponsePayload draftResponseData = createFinalDraftResponse(existingDraft);
-        return ok("초안 업데이트 성공", draftResponseData);
+            ChatDraft draft = (json != null && !json.isBlank())
+                    ? objectMapper.readValue(json, ChatDraft.class)   // ← checked exception
+                    : new ChatDraft();
+
+            draft.setSessionId(sessionId);
+            updateDraftFromDto(draft, updateDto);
+
+            String updated = objectMapper.writeValueAsString(draft);  // ← checked exception
+            stringRedisTemplate.opsForValue().set(key, updated, DRAFT_TTL);
+
+            DraftResponsePayload resp = createFinalDraftResponse(draft);
+            return ok("초안 업데이트 성공", resp);
+
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            log.error("초안 JSON 처리 실패: sid={}, err={}", sessionId, e.toString(), e);
+            throw new IllegalStateException("초안 데이터 형식이 올바르지 않습니다.", e);
+        } catch (Exception e) {
+            log.error("초안 업데이트 실패: sid={}, err={}", sessionId, e.toString(), e);
+            throw new IllegalStateException("초안 업데이트 중 오류가 발생했습니다.", e);
+        }
     }
 
     private void updateDraftFromDto(ChatDraft draft, DraftRequest dto) {
@@ -439,7 +506,19 @@ public class ChatService {
         User user=userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다"));
 
-        ChatDraft draft = (ChatDraft) redisTemplate.opsForValue().get(sessionId);
+        String key = "chat:draft:v1:" + sessionId;
+        String json = stringRedisTemplate.opsForValue().get(key);
+        if (json == null || json.isBlank()) {
+            throw new IllegalStateException("세션 초안을 찾을 수 없습니다. 다시 시도해 주세요.");
+        }
+        ChatDraft draft;
+        try {
+            draft = objectMapper.readValue(json, ChatDraft.class);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            log.error("초안 JSON 파싱 실패: sid={}, json={}", sessionId, json, e);
+            // 트랜잭션 롤백을 원하면 체크예외 말고 런타임 예외로 던지는 게 좋아요
+            throw new IllegalStateException("초안 데이터 형식이 올바르지 않습니다.", e);
+        }
 
         Long categoryId = draft.getCategoryId();
         Category category = categoryRepository.findById(categoryId)
@@ -453,31 +532,40 @@ public class ChatService {
                 .requestTime(OffsetDateTime.parse(draft.getRequestTime()))
                 .category(category)
                 .requester(user)
+                .images(draft.getImages())
                 .build();
 
         Integer estimatedMinutes = estimateMinutes(newHelpRequest);
         newHelpRequest.setEstimatedMinutes(estimatedMinutes);
 
-        helpRequestRepository.save(newHelpRequest);
+        HelpRequest saved = helpRequestRepository.save(newHelpRequest);
 
-        redisTemplate.delete(sessionId);
+        // 드래프트 삭제
+        stringRedisTemplate.delete(key);
 
-        FinalChatResponsePayload payload = createFinalChatResponsePayload(draft, userDetails);
+        FinalChatResponsePayload payload = createFinalChatResponsePayload(draft, saved);
         return ok("도움 요청이 성공적으로 등록되었습니다.", payload);
     }
 
-    public FinalChatResponsePayload createFinalChatResponsePayload(ChatDraft chatDraft,CustomUserDetails user) {
+    private FinalChatResponsePayload createFinalChatResponsePayload(ChatDraft draft, HelpRequest saved) {
         return FinalChatResponsePayload.builder()
-                .location(chatDraft.getLocation())
-                .requestId(user.getId())
-                .title(chatDraft.getTitle())
-                .categoryId(chatDraft.getCategoryId())
-                .description(chatDraft.getDescription())
-                .locationDetail(chatDraft.getLocationDetail())
-                .requestTime(chatDraft.getRequestTime())
+                .requestId(saved.getId())
+                .title(saved.getTitle())
+                .categoryId(
+                        saved.getCategory() != null ? saved.getCategory().getId()
+                                : draft.getCategoryId()
+                )
+                .description(saved.getDescription())
+                .location(saved.getLocation())
+                .locationDetail(saved.getLocationDetail())
+                .requestTime(
+                        saved.getRequestTime() != null
+                                ? saved.getRequestTime().toString()  // ISO-8601(+offset)
+                                : draft.getRequestTime()
+                )
                 .status(HelpRequestStatus.PENDING.toString())
                 .createdAt(OffsetDateTime.now().toString())
-                .route("/help-requests/" + user.getId())
+                .route("/help-requests/" + saved.getId())
                 .build();
     }
 

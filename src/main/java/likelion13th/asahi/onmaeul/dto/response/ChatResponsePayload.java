@@ -18,6 +18,7 @@ public class ChatResponsePayload implements Serializable {
     private List<String> missing_fields;
     private boolean can_finish;
     private Integer session_ttl_seconds;
+    private String action; // ★ 추가: ASK / CONFIRM / CREATE / REVISE
 
     @Getter
     @Setter
