@@ -66,6 +66,7 @@ app:
       - https://onmaeul-project.vercel.app/
       - https://onmaeul-project-geummi0520s-projects.vercel.app
       - https://onmaeul-project-geummi0520-geummi0520s-projects.vercel.app
+      - https://onmaeul-project.vercel.app
 
 aws:
   s3:
