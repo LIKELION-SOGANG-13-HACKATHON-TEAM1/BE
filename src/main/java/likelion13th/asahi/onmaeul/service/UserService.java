@@ -8,6 +8,7 @@ import likelion13th.asahi.onmaeul.domain.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDate;
 
 @Service
@@ -16,14 +17,16 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final S3Service s3Service;
 
-    public Long save(AddUserRequest dto){
+    public Long save(AddUserRequest dto) throws IOException {
         String introduceToSave=(dto.getUserRole() == UserRole.JUNIOR)?dto.getIntroduce():null;
+        String profileUrl = s3Service.upload(dto.getProfileUrl());
 
             return userRepository.save(User.builder()
                     .username(dto.getUsername())
                     .phoneNumber(dto.getPhoneNumber())
-                    .profileUrl(dto.getProfileUrl())
+                    .profileUrl(profileUrl)
                     .passwordHash(bCryptPasswordEncoder.encode(dto.getPassword()))
                     .introduce(introduceToSave)
                     .birthDate(LocalDate.parse(dto.getBirth()))
