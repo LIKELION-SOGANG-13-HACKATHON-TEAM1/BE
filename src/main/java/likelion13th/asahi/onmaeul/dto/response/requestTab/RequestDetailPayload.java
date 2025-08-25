@@ -18,4 +18,5 @@ public class RequestDetailPayload {
     private ActionsDto actions; // 청년은 어떤 액션을 취할 수 있는 버튼 없음. (조회만 가능): 어르신용
     private JuniorInfo juniorInfo;
     private SeniorInfo seniorInfo;
+    private String category;
 }

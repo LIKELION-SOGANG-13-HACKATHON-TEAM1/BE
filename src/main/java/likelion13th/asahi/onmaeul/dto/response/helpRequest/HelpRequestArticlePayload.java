@@ -43,7 +43,7 @@ public class HelpRequestArticlePayload {
 
     @JsonProperty("ui_flags")
     private UiFlags uiFlags;
-    
+
     @JsonProperty("estimated_time_in_minutes")
     private Integer estimatedTimeInMinutes;
 
@@ -54,7 +54,7 @@ public class HelpRequestArticlePayload {
     @AllArgsConstructor
     @Data
     @Builder
-    public static class UiFlags{
+    public static class UiFlags {
         @JsonProperty("can_accept")
         private boolean canAccept;
         @JsonProperty("can_edit")
@@ -67,7 +67,7 @@ public class HelpRequestArticlePayload {
     @AllArgsConstructor
     @Data
     @Builder
-    public static class Routes{
+    public static class Routes {
         private String edit;
         private String cancel;
     }
