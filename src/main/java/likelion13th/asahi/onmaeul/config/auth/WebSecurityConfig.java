@@ -87,12 +87,6 @@ public class WebSecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/home","/signup", "/login", "/public/**","/css/**","/js/**","/images/**","/favicon.ico","/error").permitAll()
-                        .requestMatchers(
-                                "/v3/api-docs/**",
-                                "/v3/api-docs/swagger-config",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(e -> e
@@ -112,6 +106,16 @@ public class WebSecurityConfig {
                             res.getWriter().write("{\"ok\":false,\"error\":\"BAD_CREDENTIALS\"}"); //실패하면 401{ok:false...}반환
                         })
                         .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout") // 로그아웃을 처리할 URL 지정
+                        .logoutSuccessHandler((req, res, auth) -> { // 로그아웃 성공 시 핸들러
+                            res.setStatus(200);
+                            res.setContentType("application/json;charset=UTF-8");
+                            res.getWriter().write("{\"ok\":true}"); // 로그아웃 성공 시 200{ok:true} 반환
+                        })
+                        .invalidateHttpSession(true) // 세션 무효화
+                        .deleteCookies("JSESSIONID") // JSESSIONID 쿠키 삭제
                 )
                 .authenticationProvider(authenticationProvider()); // DB 인증 연결
 
