@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -221,14 +222,32 @@ public class RequestService {
     }
 
     @Transactional
-    public void startHelpRequest(Long userId, Long requestId) {
+    public RequestStartPayload startHelpRequest(Long userId, Long requestId) {
         HelpRequest request = helpRequestRepository.findById(requestId)
                 .orElseThrow(() -> new IllegalArgumentException("요청을 찾을 수 없습니다."));
 
+        // 어르신 권한 + 현재 상태 확인 (요청이 MATCHED 여야 시작 가능)
         validateSeniorAction(userId, request, HelpRequestStatus.MATCHED, "도움 시작");
+
+        // 1) 매칭 찾기 (권한까지 체크하는 버전 권장)
+        Match match = matchRepository.findActiveForSenior(requestId, userId, MatchStatus.ACCEPTED)
+                .orElseThrow(() -> new IllegalArgumentException("해당 요청의 활성 매칭이 없습니다."));
+
+        // 2) 상태 전환 + 시간 기록 (둘 다)
+        OffsetDateTime now = OffsetDateTime.now();
 
         request.setStatus(HelpRequestStatus.IN_PROGRESS);
         helpRequestRepository.save(request);
+
+        match.setStatus(MatchStatus.IN_PROGRESS);  // 엔티티에 세터/도메인 메서드가 있어야 함
+        matchRepository.save(match);
+
+        // 3) 응답 DTO로 match_id 포함해 반환
+        return RequestStartPayload.builder()
+                .match_id(match.getId())
+                .request_id(request.getId())
+                .status(HelpRequestStatus.IN_PROGRESS)
+                .build();
     }
 
     @Transactional

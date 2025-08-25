@@ -1,5 +1,6 @@
 package likelion13th.asahi.onmaeul.dto.response.requestTab;
 
+import likelion13th.asahi.onmaeul.domain.HelpRequestStatus;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -8,6 +9,5 @@ import lombok.Getter;
 public class RequestStartPayload {
     private Long match_id;
     private Long request_id;
-    private String status;       // "in_progress"
-    private String started_at;   // ISO-8601 문자열
+    private HelpRequestStatus status;       // "in_progress"
 }

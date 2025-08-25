@@ -3,6 +3,7 @@ package likelion13th.asahi.onmaeul.repository;
 import likelion13th.asahi.onmaeul.domain.HelpRequest;
 import likelion13th.asahi.onmaeul.domain.HelpRequestStatus;
 import likelion13th.asahi.onmaeul.domain.Match;
+import likelion13th.asahi.onmaeul.domain.MatchStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -76,4 +77,17 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 
     List<Match> findByHelpRequestIn(List<HelpRequest> helpRequests);
     Optional<Match> findByHelpRequest(HelpRequest helpRequest);
+
+    @Query("""
+    select m from Match m
+    join m.helpRequest hr
+    where hr.id = :requestId
+      and hr.requester.id = :seniorId
+      and m.status = :status
+""")
+    Optional<Match> findActiveForSenior(
+            @Param("requestId") Long requestId,
+            @Param("seniorId") Long seniorId,
+            @Param("status") MatchStatus status
+    );
 }
