@@ -34,10 +34,16 @@ public class MyPageController {
         );
     }
 
-    @PatchMapping("/profile")
-    public ResponseEntity<ApiResponse<EditMyPagePayload>> updateImage(@AuthenticationPrincipal CustomUserDetails me, @RequestBody ImageRequest imageRequest){
-        EditMyPagePayload data=myPageService.updateImage(me.getId(),imageRequest.getImageFile());
-        return ResponseEntity.ok(ApiResponse.ok("사진 수정 성공",data));
+    @PatchMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<EditMyPagePayload>> updateImage(
+            @AuthenticationPrincipal CustomUserDetails me,
+            // 2. @RequestBody 대신 @RequestPart로 파일을 직접 받습니다.
+            //    ImageRequest DTO는 더 이상 필요 없습니다.
+            @RequestPart("imageFile") MultipartFile imageFile) {
+
+        // 3. 서비스에 MultipartFile 객체를 바로 전달합니다.
+        EditMyPagePayload data = myPageService.updateImage(me.getId(), imageFile);
+        return ResponseEntity.ok(ApiResponse.ok("사진 수정 성공", data));
     }
 
 //    @Operation(
