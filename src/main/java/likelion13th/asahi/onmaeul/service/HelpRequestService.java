@@ -22,6 +22,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.RequestBody;
+
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -182,7 +184,7 @@ public class HelpRequestService {
     public ApiResponse<DeletePayload> deleteArticle(long id, CustomUserDetails user){
         HelpRequest helpRequest = helpRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("not found: " + id));
-        authorizeArticleAuthor(helpRequest);
+        authorizeArticleAuthor(helpRequest,user);
 
         helpRequestRepository.delete(helpRequest);
 
@@ -197,10 +199,10 @@ public class HelpRequestService {
     }
 
     @Transactional
-    public ApiResponse<UpdatePayload> patch(long id, CustomUserDetails user, UpdateRequest updateRequest){
+    public ApiResponse<UpdatePayload> patch(long id, CustomUserDetails user, @RequestBody UpdateRequest updateRequest){
         HelpRequest helpRequest=helpRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("not found: " + id));
-        authorizeArticleAuthor(helpRequest);
+        authorizeArticleAuthor(helpRequest,user);
 
         helpRequest.update(updateRequest);
 
@@ -215,8 +217,8 @@ public class HelpRequestService {
     }
 
     //게시글을 작성한 유저인지 확인
-    private static void authorizeArticleAuthor(HelpRequest helpRequest){
-        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+    private static void authorizeArticleAuthor(HelpRequest helpRequest,CustomUserDetails user){
+        String userName = user.getUsername();
         if (!helpRequest.getRequester().getUsername().equals(userName)){
             throw new IllegalArgumentException("not authorized");
         }
