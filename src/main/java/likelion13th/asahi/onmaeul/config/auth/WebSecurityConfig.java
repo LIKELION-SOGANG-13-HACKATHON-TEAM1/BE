@@ -84,8 +84,15 @@ public class WebSecurityConfig {
                 .securityContext(sc -> sc.requireExplicitSave(false))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .csrf(csrf -> csrf.disable())
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/home","/signup", "/login", "/public/**","/css/**","/js/**","/images/**","/favicon.ico","/error").permitAll()
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/v3/api-docs/swagger-config",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(e -> e
