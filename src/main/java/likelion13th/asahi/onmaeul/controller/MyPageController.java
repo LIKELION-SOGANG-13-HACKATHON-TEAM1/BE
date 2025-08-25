@@ -1,16 +1,21 @@
 package likelion13th.asahi.onmaeul.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
 import likelion13th.asahi.onmaeul.domain.ClassStatus;
 import likelion13th.asahi.onmaeul.dto.request.EditMyPageRequest;
+import likelion13th.asahi.onmaeul.dto.request.ImageRequest;
 import likelion13th.asahi.onmaeul.dto.response.myPage.*;
 import likelion13th.asahi.onmaeul.config.auth.CustomUserDetails;
 import likelion13th.asahi.onmaeul.dto.response.ApiResponse;
 import likelion13th.asahi.onmaeul.service.MyPageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,6 +33,27 @@ public class MyPageController {
                 ApiResponse.ok("내정보 메인페이지 조회 성공", body)
         );
     }
+
+    @PatchMapping("/profile")
+    public ResponseEntity<ApiResponse<EditMyPagePayload>> updateImage(@AuthenticationPrincipal CustomUserDetails me, @RequestBody ImageRequest imageRequest){
+        EditMyPagePayload data=myPageService.updateImage(me.getId(),imageRequest.getImageFile());
+        return ResponseEntity.ok(ApiResponse.ok("사진 수정 성공",data));
+    }
+
+//    @Operation(
+//            summary = "프로필 사진 수정",
+//            description = "사용자의 프로필 사진을 수정합니다. 이미지 파일을 multipart/form-data 형식으로 전송해야 합니다."
+//    )
+//    @PatchMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    public ResponseEntity<ApiResponse<EditMyPagePayload>> updateImage(
+//            @AuthenticationPrincipal CustomUserDetails me,
+//            // @RequestBody 대신 @RequestPart 사용
+//            @RequestPart("imageFile") MultipartFile imageFile) {
+//
+//        // 서비스 메서드도 MultipartFile을 받도록 수정
+//        EditMyPagePayload data = myPageService.updateImage(me.getId(), imageFile);
+//        return ResponseEntity.ok(ApiResponse.ok("사진 수정 성공", data));
+//    }
 
     @PreAuthorize("hasAnyRole('SENIOR','JUNIOR')")
     @PatchMapping

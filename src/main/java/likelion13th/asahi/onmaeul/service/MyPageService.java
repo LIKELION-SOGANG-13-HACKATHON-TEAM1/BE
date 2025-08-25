@@ -5,10 +5,18 @@ import likelion13th.asahi.onmaeul.dto.request.EditMyPageRequest;
 import likelion13th.asahi.onmaeul.exception.*;
 import likelion13th.asahi.onmaeul.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import likelion13th.asahi.onmaeul.dto.response.myPage.*;
+import org.springframework.web.multipart.MultipartFile;
+import retrofit2.http.Multipart;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import java.io.IOException;
 import java.lang.Class;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -16,6 +24,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +36,7 @@ public class MyPageService {
     private final ReviewRepository reviewRepository;
     private final ClassParticipantRepository classParticipantRepository;
     private final ClassRepository classRepository;
+    private final S3Service s3Service;
 
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     private static final DateTimeFormatter ISO_OFFSET = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
@@ -90,6 +100,36 @@ public class MyPageService {
                 .user_introduce(u.getIntroduce())
                 .profile_url(u.getProfileUrl())
                 .build();
+    }
+
+    @Transactional // 데이터베이스 변경이 있으므로 트랜잭션을 적용합니다.
+    public EditMyPagePayload updateImage(Long userId, MultipartFile image) {
+        try {
+            // 1. S3Service를 통해 파일 업로드 후, 파일의 URL을 받습니다.
+            String profileUrl = s3Service.upload(image);
+
+            // 2. 사용자를 조회합니다.
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new NotFoundException("존재하지 않는 사용자입니다."));
+
+            // 3. 사용자의 프로필 URL을 변경합니다. (JPA 변경 감지)
+            user.changeProfileUrl(profileUrl);
+
+            // 4. 변경된 사용자 정보를 기반으로 Payload를 생성하여 반환합니다.
+            EditMyPagePayload editMyPauload=EditMyPagePayload.builder()
+                    .user_id(user.getId())
+                    .user_name(user.getUsername())
+                    .user_phonenumber(user.getPhoneNumber())
+                    .user_introduce(user.getIntroduce())
+                    .profile_url(profileUrl)
+                    .birth_date(user.getBirthDate().toString())
+                    .build();
+            return editMyPauload;
+    } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
     }
 
     /**

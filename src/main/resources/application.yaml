@@ -6,6 +6,13 @@ server:
         secure: true # https 용
 
 spring:
+  cloud:
+    aws:
+      # 🚫 credentials 섹션을 완전히 삭제합니다.
+      region:
+        static: ap-northeast-2 # 리전 정보는 필수입니다.
+      stack:
+        auto: false
   datasource:
     url: jdbc:postgresql://localhost:5432/onmaeul
     username: ${DB_USERNAME}
