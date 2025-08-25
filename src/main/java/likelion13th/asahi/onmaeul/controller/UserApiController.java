@@ -22,7 +22,7 @@ public class UserApiController {
     @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Long>> signup(
             @RequestPart("requestDto") AddUserRequest requestDto,
-            @RequestPart("profile_image") MultipartFile profileImage) throws IOException {
+            @RequestPart(value="profile_image", required = false) MultipartFile profileImage) throws IOException {
 
         Long userId = userService.save(requestDto, profileImage);
         ApiResponse<Long> payload = ApiResponse.ok("회원가IP 완료", userId);
