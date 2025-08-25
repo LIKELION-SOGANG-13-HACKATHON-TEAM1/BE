@@ -144,7 +144,8 @@ public class RequestService {
                 .images(request.getImages())
                 .location(request.getLocation())
                 .requestTime(request.getRequestTime().toString())
-                .status(request.getStatus().toString().toLowerCase());
+                .status(request.getStatus().toString().toLowerCase())
+                .category(request.getCategory().getName());
 
         // 상태 및 역할에 따라 추가 정보 및 액션 버튼 설정
         if (UserRole.SENIOR.equals(user.getRole())) {
