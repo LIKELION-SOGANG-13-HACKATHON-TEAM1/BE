@@ -438,7 +438,7 @@ public class ChatService {
             parts.add("내용=" + (desc.length() > 40 ? desc.substring(0, 40) + "..." : desc));
         }
         String line = String.join(" · ", parts);
-        return (line.isEmpty() ? "" : "정리: " + line + "\n") + "이대로 요청을 생성할까요?";
+        return (line.isEmpty() ? "" : "정리: " + line + "\n") + "이대로 요청을 생성해드릴게요 :)";
     }
 
     private String generateBotReply(ChatResponsePayload.CollectedForm form, boolean canFinish, String llmResponseJson) {
