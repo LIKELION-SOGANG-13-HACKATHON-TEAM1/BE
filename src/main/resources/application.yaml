@@ -62,8 +62,10 @@ app:
   cors:
     allowed-origins:
       - http://localhost:5173  # FE 로컬 주소
-      - http://172.30.1.95:5173 #FE 배포 주소
+      - http://172.30.1.95:5173 #FE 배포 주소git
       - https://onmaeul-project.vercel.app/
+      - https://onmaeul-project-geummi0520s-projects.vercel.app
+      - https://onmaeul-project-geummi0520-geummi0520s-projects.vercel.app
 
 aws:
   s3:
