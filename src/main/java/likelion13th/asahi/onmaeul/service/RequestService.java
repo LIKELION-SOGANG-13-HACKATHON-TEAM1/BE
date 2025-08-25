@@ -251,7 +251,7 @@ public class RequestService {
     }
 
     @Transactional
-    public void completeHelpRequest(Long userId, Long requestId) {
+    public RequestCompletePayload completeHelpRequest(Long userId, Long requestId) {
         HelpRequest request = helpRequestRepository.findById(requestId)
                 .orElseThrow(() -> new IllegalArgumentException("요청을 찾을 수 없습니다."));
 
@@ -272,7 +272,7 @@ public class RequestService {
         return RequestCompletePayload.builder()
                 .matchId(match.getId())
                 .requestId(request.getId())
-                .status(request.getStatus().toString().toLowerCase())
+                .status(HelpRequestStatus.COMPLETED_UNREVIEWED)
                 .build();
     }
 
