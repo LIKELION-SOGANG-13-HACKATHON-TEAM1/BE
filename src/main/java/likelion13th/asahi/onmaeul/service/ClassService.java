@@ -120,6 +120,7 @@ public class ClassService {
                             .id(e.getId())
                             .title(e.getTitle())
                             .hostName(e.getHost().getUsername())
+                            .schedule(e.getSchedule())
                             .status(e.getStatus().toString())
                             .description(e.getDescription())
                             .build();
