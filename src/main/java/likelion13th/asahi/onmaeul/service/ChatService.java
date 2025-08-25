@@ -81,14 +81,13 @@ public class ChatService {
     }
 
     /** 채팅 메시지 처리 및 응답 생성 */
-    // 기존 메서드 전체 교체
     public ChatResponsePayload processChatMessage(ChatRequest chatRequest) {
 
-        // 1) 세션 아이디 확정 2) 세션 상태 로드
+        // 1) 세션 아이디 확정
         String sessionId = (chatRequest.getSessionId() == null || chatRequest.getSessionId().isBlank())
                 ? UUID.randomUUID().toString()
                 : chatRequest.getSessionId();
-
+        // 2) 세션 상태 로드
         ChatResponsePayload.CollectedForm currentForm = getFormFromRedis(sessionId);
         if (currentForm == null) {
             currentForm = ChatResponsePayload.CollectedForm.builder().build();
@@ -152,7 +151,7 @@ public class ChatService {
 
     Schema:
     { "data": {"category_id": null|number, "title": null|string, "description": null|string,
-               "location": null|string, "location_detail": null|string, "phone_number": null|string,
+               "location": null|string, "location_detail": null|string,
                "request_time": null|string, "images": []},
       "missing_fields": [], "bot_reply": string, "action": "ASK|CONFIRM|CREATE|REVISE" }
     """
@@ -160,7 +159,7 @@ public class ChatService {
                                     // 사용자 컨텍스트는 user에
                                     new ChatMessage(ChatMessageRole.USER.value(), prompt)
                             ))
-                            .temperature(0.2) // 일탈 최소화
+                            .temperature(0.5) // 일탈 줄이기
                             .maxTokens(600)
                             .build()
             );
@@ -223,17 +222,26 @@ public class ChatService {
         List<String> missingFields = getMissingFields(updatedForm);
         boolean canFinish = missingFields.isEmpty();
 
-        // 8) action 분기 (정제된 JSON 사용)
+        // 8) action 결정 및 분기 (LLM → 후처리 승격)
         String action = extractAction(jsonText);
+
+        // 사용자 확답이면 action 강제 승격!!!
+        if (canFinish
+                && !"CREATE".equalsIgnoreCase(action)
+                && isAffirmativeCreateIntent(chatRequest.getMessage())) {
+            action = "CREATE";
+        }
+
         String botReply;
+
         if ("CREATE".equalsIgnoreCase(action) && canFinish) {
-            // 여기서 초안 저장 !!!!
+            // 초안 저장
             saveDraft(sessionId, updatedForm);
 
-            // 요약 멘트(원하면 유지)
+            // 한 줄 요약
             botReply = buildSummary(updatedForm);
 
-            // ★ 응답에 action 같이 내려서 프론트가 바로 finalize 호출하게
+            // 프론트가 바로 finalize 호출할 수 있도록 CREATE로 응답
             return ChatResponsePayload.builder()
                     .session_id(sessionId)
                     .bot_reply(botReply)
@@ -244,7 +252,8 @@ public class ChatService {
                     .action("CREATE")
                     .build();
         }
-        else if ("CONFIRM".equalsIgnoreCase(action) && canFinish) {
+
+        if ("CONFIRM".equalsIgnoreCase(action) && canFinish) {
             try {
                 JsonNode r = objectMapper.readTree(jsonText);
                 JsonNode br = r.get("bot_reply");
@@ -408,11 +417,12 @@ public class ChatService {
     private List<String> getMissingFields(ChatResponsePayload.CollectedForm form) {
         List<String> missing = new ArrayList<>();
         if (form.getCategory_id() == null) missing.add("category_id");
-        if (form.getTitle() == null) missing.add("title");
-        if (form.getDescription() == null) missing.add("description");
-        if (form.getLocation() == null) missing.add("location");
-        if (form.getLocation_detail() == null) missing.add("location_detail");
-        if (form.getRequest_time() == null) missing.add("request_time");
+        if (form.getTitle() == null || form.getTitle().isBlank()) missing.add("title");
+        if (form.getDescription() == null || form.getDescription().isBlank()) missing.add("description");
+        if (form.getLocation() == null || form.getLocation().isBlank()) missing.add("location");
+        if (form.getLocation_detail() == null || form.getLocation_detail().isBlank()) missing.add("location_detail");
+        if (form.getRequest_time() == null || form.getRequest_time().isBlank()) missing.add("request_time");
+
         return missing;
     }
 
@@ -483,6 +493,37 @@ public class ChatService {
             log.error("saveDraft error: sid={}, err={}", sessionId, e.toString(), e);
         }
     }
+
+    // ChatService 내부 아무 private 메서드들 근처
+    private boolean isAffirmativeCreateIntent(String msg) {
+        if (msg == null) return false;
+        String t = msg.trim().toLowerCase();
+
+        // 공백/구두점 제거(간단 정규화)
+        String norm = t.replaceAll("[\\p{Z}\\s]+", "")
+                .replaceAll("[!?.~…·、，,؛؛:;]", "");
+
+        // 명시적 생성 의사
+        String[] createTriggers = {
+                "생성", "등록", "올려", "완료", "끝내", "마무리",
+                "진행", "만들어", "만들어줘", "만들어주세요", "게시",
+                "올려줘", "올려주세요", "올립니다", "바로해", "바로해줘",
+                "해줘", "해주세요", "진행해", "진행해줘", "진행해주세요"
+        };
+
+        // 긍정 확답
+        String[] yesTriggers = {
+                "네", "응", "예", "웅", "그래", "그래요", "좋아", "좋아요",
+                "맞아", "맞아요", "오케이", "ok", "okay", "ㅇㅋ", "확정", "가자",
+                "해주세요", "해주세용"
+        };
+
+        for (String k : createTriggers) if (norm.contains(k)) return true;
+        for (String k : yesTriggers)    if (norm.equals(k) || norm.endsWith(k)) return true;
+
+        return false;
+    }
+
 
     // =======================
     // B. 초안 업데이트 & 최종화
