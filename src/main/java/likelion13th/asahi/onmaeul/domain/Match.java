@@ -49,4 +49,8 @@ public class Match {
         if (this.status == null) this.status = MatchStatus.ACCEPTED;
     }
 
+    public void setStatus(MatchStatus status) {
+        this.status = status;
+    }
+
 }

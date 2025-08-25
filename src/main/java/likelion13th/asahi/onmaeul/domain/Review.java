@@ -24,7 +24,7 @@ public class Review {
     private User writer;
 
     //FK->Match(id)
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "match_id", nullable = false)
     private Match match;
 
