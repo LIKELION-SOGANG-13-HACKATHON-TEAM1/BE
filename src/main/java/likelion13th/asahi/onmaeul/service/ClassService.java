@@ -174,7 +174,7 @@ public class ClassService {
 
         ClazzParticipatePayload clazzParticipatePayload=ClazzParticipatePayload.builder()
                 .classId(classInfo.getId())
-                .hostName(user.getUsername())
+                .hostName(classInfo.getHost().getUsername())
                 .build();
 
         return ok("class 신청 성공 ",clazzParticipatePayload);
