@@ -263,6 +263,12 @@ public class ChatService {
 
     private String buildPromptForLLM(ChatRequest request, ChatResponsePayload.CollectedForm currentForm) {
         StringBuilder sb = new StringBuilder();
+
+        java.time.OffsetDateTime anchor =
+                (request.getMeta() != null && request.getMeta().getClientTs() != null)
+                        ? request.getMeta().getClientTs()
+                        : java.time.OffsetDateTime.now(java.time.ZoneId.of("Asia/Seoul"));
+
         sb.append("당신은 '온마을' 서비스의 챗봇입니다. ")
                 .append("사용자는 어르신이므로, 존댓말과 쉬운 단어로 응답하세요. ")
                 .append("도움 요청글에 필요한 정보를 추출하고 누락된 정보는 한 번에 하나씩 질문하세요.\n")
@@ -274,7 +280,19 @@ public class ChatService {
                 .append("- 시간·장소·기기는 구체적으로 적되, 어려운 전문 용어·영어는 쉬운 말로 풀어쓰세요.\n")
                 .append("- 상대시간(예: 내일 오후 3시)은 Asia/Seoul 기준 ISO 8601(+09:00)으로 변환하세요. 모호하면 한 번만 되물어보세요.\n")
                 .append("- 전화번호는 매칭 후 자동 공유되므로 절대 묻지 마세요. missing_fields 에 phone_number 를 넣지 마세요.\n")
-                .append("- 추가 질문이 필요할 때는 한 번에 하나의 짧은 질문만 하세요.\n");
+                .append("- 추가 질문이 필요할 때는 한 번에 하나의 짧은 질문만 하세요.\n")
+                .append("시간 변환 규칙:\n")
+                .append("- 기준 시각(Asia/Seoul): ").append(anchor.toString()).append("\n")
+                .append("- 상대시간(예: 내일 오후 4시)은 기준 시각을 기준으로 ISO 8601(+09:00)으로 변환하세요.\n")
+                .append("- 날짜/시간이 모호하면 딱 1번만 되물어보세요.\n")
+                .append("\n")
+                .append("장소 파싱 규칙:\n")
+                .append("- 큰 지점(역/건물/시설명)은 location에, 세부 위치 표현(앞/옆/맞은편/건너편/근처/입구/출구 숫자 등)은 location_detail에 분리하세요.\n")
+                .append("  예: \"신촌역 1번 출구 올리브영 앞\" → location=\"신촌역 1번 출구\", location_detail=\"올리브영 앞\".\n")
+                .append("\n")
+                .append("null 처리 규칙:\n")
+                .append("- 알 수 없는 값은 JSON null을 사용하고, 문자열 \"null\"을 절대 쓰지 마세요.\n")
+                .append("- category_id 를 모르면 null 로 두세요(0 금지).\n");
         ;
         sb.append("아래 JSON 형식으로만 응답하세요:\n")
                 .append("{\n")
@@ -357,6 +375,7 @@ public class ChatService {
         if (form.getTitle() == null) missing.add("title");
         if (form.getDescription() == null) missing.add("description");
         if (form.getLocation() == null) missing.add("location");
+        if (form.getLocation_detail() == null) missing.add("location_detail");
         if (form.getRequest_time() == null) missing.add("request_time");
         return missing;
     }
@@ -365,6 +384,7 @@ public class ChatService {
         List<String> parts = new ArrayList<>();
         if (f.getCategory_id() != null) parts.add("기기=" + f.getCategory_id());
         if (f.getLocation() != null) parts.add("장소=" + f.getLocation());
+        if (f.getLocation_detail() != null) parts.add("상세=" + f.getLocation_detail());
         if (f.getRequest_time() != null) parts.add("시간=" + f.getRequest_time());
         if (f.getTitle() != null) parts.add("제목=" + f.getTitle());
         if (f.getDescription() != null) {
@@ -389,6 +409,8 @@ public class ChatService {
             return "어떤 디지털 기기의 도움을 원하시는지 말씀해주세요. (스마트폰, 텔레비전, 키오스크)";
         } else if (missing.contains("location")) {
             return "만날 장소를 알려주세요. 집이라면 정확한 주소, 바깥이면 건물명/역 출구도 좋아요.";
+        } else if (missing.contains("location_detail")) { // 추가
+            return "정확한 위치를 알려주세요. 예: 올리브영 앞, 1번 출구 쪽, 2층 안내데스크 옆 등";
         } else if (missing.contains("request_time")) {
             return "언제 도움이 필요하신가요? 날짜와 시간을 알려주세요!";
         } else if (missing.contains("title")) {
