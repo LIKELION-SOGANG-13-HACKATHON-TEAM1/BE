@@ -22,7 +22,8 @@ public class ChatRequest {
 
     @Getter @Setter
     public static class Meta {
-        private OffsetDateTime client_ts; // 클라이언트에서 메시지가 생성된 시간
+        @JsonProperty("client_ts")
+        private OffsetDateTime clientTs; // 클라이언트에서 메시지가 생성된 시간
     }
 }
 
