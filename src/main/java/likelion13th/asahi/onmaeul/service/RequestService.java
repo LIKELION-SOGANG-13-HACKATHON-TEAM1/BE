@@ -268,10 +268,11 @@ public class RequestService {
         match.setStatus(MatchStatus.COMPLETED); // 매칭도 완료 처리 권장
         match=matchRepository.save(match);
 
-        // ✅ 완료 응답에 matchId 포함해 반환
+        // 완료 응답에 matchId 포함해 반환
         return RequestCompletePayload.builder()
                 .matchId(match.getId())
                 .requestId(request.getId())
+                .targetId(match.getResponser().getId())
                 .status(HelpRequestStatus.COMPLETED_UNREVIEWED)
                 .build();
     }
