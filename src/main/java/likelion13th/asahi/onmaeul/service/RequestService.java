@@ -266,7 +266,7 @@ public class RequestService {
         helpRequestRepository.save(request);
 
         match.setStatus(MatchStatus.COMPLETED); // 매칭도 완료 처리 권장
-        matchRepository.save(match);
+        match=matchRepository.save(match);
 
         // ✅ 완료 응답에 matchId 포함해 반환
         return RequestCompletePayload.builder()
@@ -275,6 +275,7 @@ public class RequestService {
                 .status(HelpRequestStatus.COMPLETED_UNREVIEWED)
                 .build();
     }
+
 
     private void validateSeniorAction(Long userId, HelpRequest request, HelpRequestStatus requiredStatus, String actionName) {
         if (!request.getRequester().getId().equals(userId)) {
