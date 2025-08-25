@@ -257,8 +257,23 @@ public class RequestService {
 
         validateSeniorAction(userId, request, HelpRequestStatus.IN_PROGRESS, "도움 완료");
 
+        // 활성 매칭 조회 (진행 중이어야 함)
+        Match match = matchRepository.findActiveForSenior(requestId, userId, MatchStatus.IN_PROGRESS)
+                .orElseThrow(() -> new IllegalArgumentException("해당 요청의 활성 매칭이 없습니다."));
+
+        // 상태 전환
         request.setStatus(HelpRequestStatus.COMPLETED_UNREVIEWED);
         helpRequestRepository.save(request);
+
+        match.setStatus(MatchStatus.COMPLETED); // 매칭도 완료 처리 권장
+        matchRepository.save(match);
+
+        // ✅ 완료 응답에 matchId 포함해 반환
+        return RequestCompletePayload.builder()
+                .matchId(match.getId())
+                .requestId(request.getId())
+                .status(request.getStatus().toString().toLowerCase())
+                .build();
     }
 
     private void validateSeniorAction(Long userId, HelpRequest request, HelpRequestStatus requiredStatus, String actionName) {
