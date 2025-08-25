@@ -14,5 +14,6 @@ import lombok.NoArgsConstructor;
 public class RequestCompletePayload {
     @JsonProperty("match_id") private Long matchId;
     @JsonProperty("request_id") private Long requestId;
+    @JsonProperty("target_id") private Long targetId;
     private HelpRequestStatus status; // "completed_unreviewed"
 }
