@@ -86,6 +86,7 @@ public class ClassService {
                             .hostName(e.getHost().getUsername())
                             .status(e.getStatus().toString())
                             .description(e.getDescription())
+                            .schedule(e.getSchedule())
                             .build();
                 }).toList();
 
@@ -109,7 +110,7 @@ public class ClassService {
             classPage=classRepository.findByKeyword(keyword,pageable);
             classes=classPage.getContent();
         }
-        //Repository에서 키워드로 데이터 조회(status OPEN만)
+        //Repository에서 키워드로 데이터 조회(status OPEN만git)
         else {
             classPage = classRepository.findByKeywordAndStatus(keyword, ClassStatus.OPEN, pageable);
             classes = classPage.getContent();

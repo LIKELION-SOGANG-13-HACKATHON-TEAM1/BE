@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import likelion13th.asahi.onmaeul.domain.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -19,9 +20,9 @@ public class UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final S3Service s3Service;
 
-    public Long save(AddUserRequest dto) throws IOException {
+    public Long save(AddUserRequest dto, MultipartFile profileImage) throws IOException {
         String introduceToSave=(dto.getUserRole() == UserRole.JUNIOR)?dto.getIntroduce():null;
-        String profileUrl = s3Service.upload(dto.getProfileUrl());
+        String profileUrl = s3Service.upload(profileImage);
 
             return userRepository.save(User.builder()
                     .username(dto.getUsername())

@@ -14,8 +14,6 @@ public class AddUserRequest {
     private String username;
     @JsonProperty("phone_number")
     private String phoneNumber;
-    @JsonProperty("profile_url")
-    private MultipartFile profileUrl;
     private String introduce; // role이 senior인 경우 null이어야한다
     private String password;
     @JsonProperty("user_role")
